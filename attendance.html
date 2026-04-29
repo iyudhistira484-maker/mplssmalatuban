@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Absensi MPLS — SMAN 5 Tuban</title>
+<link rel="icon" href="logo.png" type="image/svg+xml" />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="fx.css" />
+<style>
+  .att-options{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0}
+  .att-opt{padding:18px 10px;border:2px solid var(--line);border-radius:14px;text-align:center;cursor:pointer;transition:.25s var(--ease);background:#fff}
+  .att-opt i{font-size:26px;display:block;margin-bottom:8px;color:var(--muted)}
+  .att-opt strong{display:block;font-size:14px}
+  .att-opt:hover{border-color:var(--blue);transform:translateY(-2px)}
+  .att-opt.active{border-color:var(--blue);background:var(--blue-soft);box-shadow:var(--shadow-sm)}
+  .att-opt.active i{color:var(--blue)}
+  .att-opt[data-status=izin].active,.att-opt[data-status=sakit].active{border-color:var(--gold);background:var(--gold-soft)}
+  .att-opt[data-status=izin].active i,.att-opt[data-status=sakit].active i{color:var(--gold)}
+  .face-wrap{margin-top:14px;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#0b1e3a;position:relative;aspect-ratio:4/3}
+  .face-wrap video,.face-wrap canvas{width:100%;height:100%;object-fit:cover;display:block}
+  .face-wrap canvas{display:none}
+  .face-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+  .face-frame{width:60%;aspect-ratio:1;border:3px dashed rgba(255,255,255,.7);border-radius:50%;box-shadow:0 0 0 9999px rgba(11,30,58,.45)}
+  .face-actions{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+  .reason-area{margin-top:12px}
+  .reason-area textarea{width:100%;padding:12px;border:1px solid var(--line);border-radius:11px;min-height:80px;font-family:inherit}
+</style>
+</head>
+<body>
+<script>window.__skipAttendanceCheck = true;</script>
+<div class="gps-wrap">
+  <div class="gps-card" style="max-width:560px">
+    <div class="gps-icon"><i class="fa-solid fa-clipboard-user"></i></div>
+    <h2>Absensi MPLS Hari Ini</h2>
+    <p>Pilih status kehadiranmu. Untuk <b>Izin</b> atau <b>Sakit</b>, kamu perlu verifikasi wajah lewat kamera.</p>
+
+    <div class="att-options" id="optBox">
+      <div class="att-opt active" data-status="hadir"><i class="fa-solid fa-circle-check"></i><strong>Hadir</strong></div>
+      <div class="att-opt" data-status="izin"><i class="fa-solid fa-envelope-open-text"></i><strong>Izin</strong></div>
+      <div class="att-opt" data-status="sakit"><i class="fa-solid fa-briefcase-medical"></i><strong>Sakit</strong></div>
+    </div>
+
+    <!-- Hadir → GPS -->
+    <div id="hadirPanel">
+      <div class="gps-status" id="status">Tekan tombol di bawah untuk verifikasi GPS sekolah.</div>
+      <button class="btn btn-primary btn-lg btn-block" id="btnGps"><i class="fa-solid fa-satellite-dish"></i> Verifikasi Lokasi (GPS)</button>
+    </div>
+
+    <!-- Izin / Sakit → Face -->
+    <div id="facePanel" style="display:none">
+      <div class="reason-area">
+        <textarea id="reason" placeholder="Tulis alasan singkat (wajib)..."></textarea>
+      </div>
+      <div class="face-wrap" id="faceWrap">
+        <video id="cam" autoplay playsinline muted></video>
+        <canvas id="snap"></canvas>
+        <div class="face-overlay"><div class="face-frame"></div></div>
+      </div>
+      <div class="face-actions">
+        <button class="btn btn-outline" id="btnCam"><i class="fa-solid fa-camera"></i> Aktifkan Kamera</button>
+        <button class="btn btn-primary" id="btnCapture" disabled><i class="fa-solid fa-camera-retro"></i> Ambil Foto</button>
+        <button class="btn btn-ghost" id="btnRetake" style="display:none"><i class="fa-solid fa-rotate"></i> Ulangi</button>
+      </div>
+      <button class="btn btn-primary btn-lg btn-block" id="btnSubmitFace" style="margin-top:12px" disabled><i class="fa-solid fa-paper-plane"></i> Kirim Pengajuan</button>
+      <p style="margin-top:10px;font-size:12px;color:var(--muted)"><i class="fa-solid fa-shield-halved"></i> Foto wajahmu hanya disimpan untuk verifikasi pengajuan dan dapat dilihat admin.</p>
+    </div>
+
+    <p style="margin-top:14px;font-size:13px;color:var(--muted)"><a href="#" id="logoutLink">← Keluar</a></p>
+  </div>
+</div>
+<div id="toast-root"></div>
+<script src="ui.js"></script>
+<script type="module">
+import { guardRoute, logout } from './auth.js';
+import { db, SCHOOL_CONFIG } from './firebase-config.js';
+import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const { toast, btnLoading } = window.MPLSUI;
+
+let profile, status = 'hadir', stream = null, faceDataUrl = null;
+
+(async () => {
+  try {
+    const { onAuth } = await import('./auth.js');
+    const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+    onAuth(async (user) => {
+      if (!user) return;
+      const today = new Date().toISOString().slice(0,10);
+      const snap = await getDoc(doc(db, 'attendance', `${user.uid}_${today}`));
+      if (snap.exists() && snap.data().status === 'hadir') {
+        location.replace('student.html');
+      }
+    });
+  } catch(_){}
+})();
+
+(async () => { profile = await guardRoute('student'); })();
+
+document.getElementById('logoutLink').onclick = async (e) => { e.preventDefault(); await logout(); location.href='login.html'; };
+
+// ===== Tab status =====
+document.querySelectorAll('.att-opt').forEach(el => el.addEventListener('click', () => {
+  document.querySelectorAll('.att-opt').forEach(x => x.classList.remove('active'));
+  el.classList.add('active');
+  status = el.dataset.status;
+  const isPresent = status === 'hadir';
+  document.getElementById('hadirPanel').style.display = isPresent ? '' : 'none';
+  document.getElementById('facePanel').style.display = isPresent ? 'none' : '';
+  if (isPresent) stopCam();
+}));
+
+// ===== GPS (Hadir) =====
+function distMeter(lat1, lon1, lat2, lon2) {
+  const R = 6371000, toRad = d => d*Math.PI/180;
+  const dLat = toRad(lat2-lat1), dLon = toRad(lon2-lon1);
+  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+document.getElementById('btnGps').addEventListener('click', () => {
+  const btn = document.getElementById('btnGps');
+  const statusEl = document.getElementById('status');
+  if (!navigator.geolocation) return toast('Browser tidak mendukung GPS', { type:'error' });
+  btnLoading(btn, true, 'Mendeteksi lokasi...');
+  statusEl.textContent = 'Mengambil koordinat GPS...';
+  navigator.geolocation.getCurrentPosition(async (pos) => {
+    const { latitude, longitude, accuracy } = pos.coords;
+    const d = distMeter(latitude, longitude, SCHOOL_CONFIG.lat, SCHOOL_CONFIG.lng);
+    statusEl.innerHTML = `Lat: ${latitude.toFixed(5)}<br>Lng: ${longitude.toFixed(5)}<br>Akurasi: ±${Math.round(accuracy)}m<br>Jarak ke sekolah: <b>${Math.round(d)} m</b>`;
+    if (d > SCHOOL_CONFIG.attendanceRadiusMeter) {
+      btnLoading(btn, false);
+      return toast(`Anda berada ${Math.round(d)}m dari sekolah. Maks ${SCHOOL_CONFIG.attendanceRadiusMeter}m.`, { type:'error', duration:5000 });
+    }
+    await saveAttendance({
+      status: 'hadir', lat: latitude, lng: longitude,
+      distance: Math.round(d), accuracy: Math.round(accuracy),
+    });
+  }, () => { btnLoading(btn,false); toast('Izinkan akses lokasi pada browser.', { type:'warning' }); },
+  { enableHighAccuracy:true, timeout:15000 });
+});
+
+// ===== Face Verification (Izin/Sakit) =====
+const cam = document.getElementById('cam'), snap = document.getElementById('snap');
+const btnCam = document.getElementById('btnCam'), btnCapture = document.getElementById('btnCapture');
+const btnRetake = document.getElementById('btnRetake'), btnSubmitFace = document.getElementById('btnSubmitFace');
+
+btnCam.onclick = async () => {
+  if (!navigator.mediaDevices?.getUserMedia) return toast('Kamera tidak tersedia di browser', { type:'error' });
+  try {
+    btnLoading(btnCam, true, 'Meminta izin...');
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode:'user', width:640, height:480 }, audio:false });
+    cam.srcObject = stream;
+    cam.style.display = ''; snap.style.display = 'none';
+    btnLoading(btnCam, false); btnCam.innerHTML = '<i class="fa-solid fa-circle-check"></i> Kamera Aktif';
+    btnCapture.disabled = false;
+  } catch (e) {
+    btnLoading(btnCam, false);
+    toast('Gagal mengakses kamera: ' + e.message, { type:'error' });
+  }
+};
+
+btnCapture.onclick = () => {
+  if (!stream) return;
+  const w = cam.videoWidth, h = cam.videoHeight;
+  snap.width = w; snap.height = h;
+  const ctx = snap.getContext('2d');
+  // mirror untuk natural selfie
+  ctx.translate(w, 0); ctx.scale(-1,1);
+  ctx.drawImage(cam, 0, 0, w, h);
+  // resize ke max ~480px untuk hemat storage Firestore (data URL)
+  const target = 480;
+  const scale = Math.min(1, target / Math.max(w,h));
+  const tw = Math.round(w*scale), th = Math.round(h*scale);
+  const tmp = document.createElement('canvas'); tmp.width = tw; tmp.height = th;
+  tmp.getContext('2d').drawImage(snap, 0,0,tw,th);
+  faceDataUrl = tmp.toDataURL('image/jpeg', 0.7);
+  cam.style.display = 'none'; snap.style.display = '';
+  btnRetake.style.display = ''; btnCapture.style.display = 'none';
+  btnSubmitFace.disabled = false;
+  toast('Foto siap dikirim', { type:'success' });
+};
+
+btnRetake.onclick = () => {
+  faceDataUrl = null;
+  cam.style.display = ''; snap.style.display = 'none';
+  btnRetake.style.display = 'none'; btnCapture.style.display = '';
+  btnSubmitFace.disabled = true;
+};
+
+btnSubmitFace.onclick = async () => {
+  const reason = document.getElementById('reason').value.trim();
+  if (!reason) return toast('Tulis alasan dulu', { type:'warning' });
+  if (!faceDataUrl) return toast('Ambil foto verifikasi wajah dulu', { type:'warning' });
+  btnLoading(btnSubmitFace, true, 'Mengirim...');
+  try {
+    await saveAttendance({ status, reason, faceImage: faceDataUrl });
+  } catch (e) {
+    btnLoading(btnSubmitFace, false);
+    toast('Gagal mengirim: ' + e.message, { type:'error' });
+  }
+};
+
+function stopCam() {
+  if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+  cam.srcObject = null;
+}
+
+async function saveAttendance(extra) {
+  const today = new Date().toISOString().slice(0,10);
+  await setDoc(doc(db, 'attendance', `${profile.uid}_${today}`), {
+    userId: profile.uid, name: profile.name, gugus: profile.gugus, kelas: profile.kelas,
+    nis: profile.nis || null,
+    date: today,
+    status: extra.status,
+    lat: extra.lat ?? null, lng: extra.lng ?? null,
+    distance: extra.distance ?? null, accuracy: extra.accuracy ?? null,
+    reason: extra.reason ?? null,
+    faceImage: extra.faceImage ?? null,
+    faceVerified: !!extra.faceImage,
+    createdAt: serverTimestamp()
+  });
+  stopCam();
+  if (extra.status === 'hadir') {
+    toast('Absensi tersimpan! Mengalihkan...', { type:'success' });
+    setTimeout(() => location.href = 'student.html', 900);
+  } else {
+    toast('Absensi ' + extra.status + ' tersimpan. Sampai jumpa besok!', { type:'success' });
+    setTimeout(async () => { try { await (await import('./auth.js')).logout(); } catch(e){} location.href = 'login.html'; }, 1200);
+  }
+}
+</script>
+<script src="fx.js" defer></script>
+<script src="attendance-window.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Daftar Siswa — SMAN 5 Tuban MPLS</title>
+<link rel="icon" href="logo.png" type="image/svg+xml" />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="fx.css" />
+</head>
+<body>
+<div class="auth-wrap">
+  <aside class="auth-side">
+    <a href="index.html" class="auth-back"><i class="fa-solid fa-arrow-left"></i> Kembali ke beranda</a>
+    <div class="brand">
+      <img src="logo.png" alt="SMAN 5 Tuban" class="brand-logo" width="40" height="40" style="object-fit:contain;display:block" />
+      <div class="brand-text"><strong>SMAN 5 TUBAN</strong><span>MPLS 2025</span></div>
+    </div>
+    <div class="auth-pitch">
+      <h2>Bergabung dalam perjalanan MPLS yang berkesan.</h2>
+      <p>Daftarkan akunmu untuk mengakses materi, soal, jadwal, dan kegiatan MPLS sepenuhnya.</p>
+      <div class="auth-bullets">
+        <div><i class="fa-solid fa-check"></i> Akses ke 5 gugus aktif</div>
+        <div><i class="fa-solid fa-check"></i> Materi & soal interaktif</div>
+        <div><i class="fa-solid fa-check"></i> Notifikasi & jadwal real-time</div>
+      </div>
+    </div>
+    <small style="color:#8c9ab9">© 2025 SMA Negeri 5 Tuban</small>
+  </aside>
+
+  <main class="auth-form-wrap">
+    <form class="auth-form" id="formReg" novalidate>
+      <h1>Daftar Akun Siswa</h1>
+      <p class="sub">Lengkapi data berikut untuk membuat akunmu.</p>
+
+      <div class="field">
+        <label>Nama Lengkap</label>
+        <div class="ctrl"><i class="fa-solid fa-user"></i><input name="name" placeholder="Nama sesuai ijazah" required></div>
+        <span class="err"></span>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>NIS / No. Induk</label>
+          <div class="ctrl"><i class="fa-solid fa-id-card"></i><input name="nis" placeholder="Contoh: 2025001" required></div>
+          <span class="err"></span>
+        </div>
+        <div class="field">
+          <label>Kelas</label>
+          <div class="ctrl"><i class="fa-solid fa-school"></i>
+            <select name="kelas" required>
+              <option value="">Pilih kelas</option>
+              <option>X-1</option><option>X-2</option><option>X-3</option><option>X-4</option><option>X-5</option><option>X-6</option>
+            </select>
+          </div>
+          <span class="err"></span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Gugus</label>
+        <div class="ctrl"><i class="fa-solid fa-flag"></i>
+          <select name="gugus" required>
+            <option value="">Pilih gugus</option>
+            <option>Gugus 1</option><option>Gugus 2</option><option>Gugus 3</option><option>Gugus 4</option><option>Gugus 5</option>
+          </select>
+        </div>
+        <span class="err"></span>
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <div class="ctrl"><i class="fa-solid fa-envelope"></i><input type="email" name="email" placeholder="kamu@email.com" required></div>
+        <span class="err"></span>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <div class="ctrl"><i class="fa-solid fa-lock"></i><input type="password" name="password" placeholder="Minimal 6 karakter" required minlength="6"></div>
+        <span class="err"></span>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block btn-lg" id="btnSubmit"><i class="fa-solid fa-user-plus"></i> Daftar Sekarang</button>
+
+      <p class="auth-foot">Sudah punya akun? <a href="login.html">Masuk di sini</a></p>
+    </form>
+  </main>
+</div>
+
+<div id="toast-root"></div>
+<script src="ui.js"></script>
+<script type="module">
+import { registerStudent } from './auth.js';
+const { toast, btnLoading } = window.MPLSUI;
+
+const form = document.getElementById('formReg');
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  // simple validation
+  let ok = true;
+  form.querySelectorAll('[required]').forEach(i => {
+    const err = i.closest('.field').querySelector('.err');
+    if (!i.value.trim()) { err.textContent = 'Wajib diisi'; ok = false; } else { err.textContent = ''; }
+  });
+  if (!ok) return toast('Lengkapi semua data', { type: 'warning' });
+  const data = Object.fromEntries(new FormData(form));
+  if (data.password.length < 6) return toast('Password minimal 6 karakter', { type: 'warning' });
+
+  const btn = document.getElementById('btnSubmit');
+  btnLoading(btn, true, 'Mendaftarkan...');
+  try {
+    await registerStudent(data);
+    toast('Akun berhasil dibuat. Mengalihkan ke absensi...', { type: 'success' });
+    setTimeout(() => location.href = 'attendance.html', 1200);
+  } catch (err) {
+    btnLoading(btn, false);
+    let msg = err.message;
+    if (msg.includes('email-already-in-use')) msg = 'Email sudah terdaftar.';
+    if (msg.includes('invalid-email')) msg = 'Format email tidak valid.';
+    if (msg.includes('weak-password')) msg = 'Password terlalu lemah.';
+    toast(msg, { type: 'error' });
+  }
+});
+</script>
+<script src="fx.js" defer></script>
+</body>
+</html>

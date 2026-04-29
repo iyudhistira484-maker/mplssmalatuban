@@ -1,0 +1,90 @@
+/* ============== SMOOTH SCROLL ============== */
+html { scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
+
+/* ============== ANIMATED WHITE BACKGROUND (no boxes/blocks) ============== */
+.fx-bg {
+  position: fixed; inset: 0; z-index: -10; pointer-events: none; overflow: hidden;
+  background: #ffffff;
+}
+.fx-bg .orb, .fx-bg .orb2, .fx-bg .orb3, .fx-bg .orb4 {
+  content: ""; position: absolute; border-radius: 50%;
+  filter: blur(110px); will-change: transform, opacity;
+  /* normal blend so no dark box artifacts on white */
+  mix-blend-mode: normal;
+}
+.fx-bg .orb { width: 55vmax; height: 55vmax; opacity: .35;
+  background: radial-gradient(circle, #bcd6ff 0%, rgba(188,214,255,0) 70%);
+  top: -15vmax; left: -10vmax;
+  animation: fxFloatA 28s cubic-bezier(.4,0,.2,1) infinite alternate;
+}
+.fx-bg .orb2 { width: 55vmax; height: 55vmax; opacity: .32;
+  background: radial-gradient(circle, #ffe0b8 0%, rgba(255,224,184,0) 70%);
+  bottom: -20vmax; right: -15vmax;
+  animation: fxFloatB 32s cubic-bezier(.4,0,.2,1) infinite alternate;
+}
+.fx-bg .orb3 { width: 48vmax; height: 48vmax; opacity: .30;
+  background: radial-gradient(circle, #e0d0ff 0%, rgba(224,208,255,0) 70%);
+  left: 35%; top: 20%;
+  animation: fxFloatC 36s cubic-bezier(.4,0,.2,1) infinite alternate;
+}
+.fx-bg .orb4 { width: 42vmax; height: 42vmax; opacity: .28;
+  background: radial-gradient(circle, #c8f0e4 0%, rgba(200,240,228,0) 70%);
+  right: 8%; top: 4%;
+  animation: fxFloatD 30s cubic-bezier(.4,0,.2,1) infinite alternate;
+}
+
+/* Aurora — soft sweeping wash */
+.fx-bg .aurora {
+  position: absolute; inset: -20% -10%;
+  background: conic-gradient(from 0deg at 50% 50%,
+    rgba(255,200,220,.10), rgba(180,210,255,.10), rgba(255,230,180,.10),
+    rgba(200,240,210,.10), rgba(220,200,255,.10), rgba(255,200,220,.10));
+  filter: blur(80px); opacity: .55;
+  animation: fxSpin 80s linear infinite;
+}
+
+/* Dark mode adapt (kept untouched logic) */
+.dark .fx-bg, body.dark .fx-bg { background: #0b1020; }
+.dark .fx-bg .orb, .dark .fx-bg .orb2, .dark .fx-bg .orb3, .dark .fx-bg .orb4 {
+  mix-blend-mode: screen; opacity: .55;
+}
+
+@keyframes fxFloatA { 0%{transform:translate(0,0) scale(1)}      100%{transform:translate(12vw,14vh) scale(1.18)} }
+@keyframes fxFloatB { 0%{transform:translate(0,0) scale(1)}      100%{transform:translate(-14vw,-10vh) scale(1.15)} }
+@keyframes fxFloatC { 0%{transform:translate(0,0) scale(1) rotate(0)} 100%{transform:translate(-8vw,12vh) scale(1.22) rotate(40deg)} }
+@keyframes fxFloatD { 0%{transform:translate(0,0) scale(1)}      100%{transform:translate(-10vw,8vh) scale(1.18)} }
+@keyframes fxSpin   { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .fx-bg .orb, .fx-bg .orb2, .fx-bg .orb3, .fx-bg .orb4, .fx-bg .aurora { animation: none; }
+  html { scroll-behavior: auto; }
+}
+
+body { position: relative; }
+.brand-logo { border-radius: 8px; }
+
+/* ============== ULTRA SMOOTH TRANSITIONS ON EVERY ELEMENT ============== */
+a, button, .btn, .sb-link, .icon-btn, input, select, textarea,
+.card, .att-opt, .panel, .kpi, .badge, .modal, img, label, li, h1, h2, h3 {
+  transition:
+    transform .55s cubic-bezier(.22,1,.36,1),
+    box-shadow .55s cubic-bezier(.22,1,.36,1),
+    background-color .35s ease,
+    color .35s ease,
+    border-color .35s ease,
+    opacity .35s ease,
+    filter .35s ease !important;
+}
+.btn:hover, .card:hover, .att-opt:hover { transform: translateY(-3px); }
+.btn:active, .card:active, .att-opt:active { transform: translateY(0) scale(.97); }
+
+/* Pointer trail canvas */
+#fx-particles { position: fixed; inset: 0; pointer-events: none; z-index: 9999; }
+
+/* Reveal on scroll — ultra smooth */
+.fx-reveal { opacity: 0; transform: translateY(36px); transition: opacity 1s cubic-bezier(.22,1,.36,1), transform 1s cubic-bezier(.22,1,.36,1); }
+.fx-reveal.in { opacity: 1; transform: translateY(0); }
+
+/* Sidebar link hover — subtle slide */
+.sb-link { will-change: transform; }
+.sb-link:hover { transform: translateX(5px); }

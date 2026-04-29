@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dashboard Siswa — SMAN 5 Tuban MPLS</title>
+<link rel="icon" href="logo.png" type="image/svg+xml" />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="fx.css" />
+<link rel="stylesheet" href="polish.css" />
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sb">
+    <div class="sb-head">
+      <img src="logo.png" alt="SMAN 5 Tuban" class="brand-logo" width="40" height="40" style="object-fit:contain;display:block" />
+      <div class="brand-text"><strong>SMAN 5 TUBAN</strong><span style="color:var(--blue)">PORTAL SISWA</span></div>
+    </div>
+    <div class="sb-section">UTAMA</div>
+    <nav class="sb-nav">
+      <a class="sb-link active" data-page="overview"><i class="fa-solid fa-gauge-high"></i> Beranda</a>
+      <a class="sb-link" data-page="soal"><i class="fa-solid fa-file-pen"></i> Soal MPLS</a>
+      <a class="sb-link" data-page="materi"><i class="fa-solid fa-book-open"></i> Materi</a>
+      <a class="sb-link" data-page="jadwal"><i class="fa-solid fa-calendar-days"></i> Jadwal</a>
+      <a class="sb-link" data-page="kegiatan"><i class="fa-solid fa-flag-checkered"></i> Kegiatan</a>
+    </nav>
+    <div class="sb-section">LAINNYA</div>
+    <nav class="sb-nav">
+      <a class="sb-link" data-page="rating"><i class="fa-solid fa-star-half-stroke"></i> Rating OSIS</a>
+      <a class="sb-link" data-page="nilai"><i class="fa-solid fa-chart-line"></i> Nilai Saya</a>
+      <a class="sb-link" data-page="notif"><i class="fa-solid fa-bell"></i> Notifikasi</a>
+      <a class="sb-link" data-page="info"><i class="fa-solid fa-circle-info"></i> Informasi MPLS</a>
+      <a class="sb-link" data-page="profil"><i class="fa-solid fa-user"></i> Profil</a>
+    </nav>
+    <div class="sb-foot">
+      <div class="sb-user">
+        <div class="av" id="avInit">S</div>
+        <div><strong id="uName">Siswa</strong><span id="uGugus">-</span></div>
+      </div>
+      <button class="btn btn-ghost btn-block" id="btnLogout" style="margin-top:10px"><i class="fa-solid fa-arrow-right-from-bracket"></i> Keluar</button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <button class="icon-btn sb-toggle"><i class="fa-solid fa-bars"></i></button>
+      <h1 id="pageTitle">Beranda</h1>
+      <div class="top-actions">
+        <button class="icon-btn"><i class="fa-solid fa-bell"></i></button>
+      </div>
+    </div>
+    <div class="content" id="content"></div>
+  </div>
+</div>
+
+<div id="toast-root"></div>
+<script src="ui.js"></script>
+<script type="module" src="student.js"></script>
+<script src="fx.js" defer></script>
+</body>
+</html>

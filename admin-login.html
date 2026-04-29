@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Login Admin — SMAN 5 Tuban MPLS</title>
+<link rel="icon" href="logo.png" type="image/svg+xml" />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="fx.css" />
+<style>.auth-side{background:#0b1e3a}</style>
+</head>
+<body>
+<div class="auth-wrap">
+  <aside class="auth-side">
+    <a href="../index.html" class="auth-back"><i class="fa-solid fa-arrow-left"></i> Kembali</a>
+    <div class="brand">
+      <img src="logo.png" alt="SMAN 5 Tuban" class="brand-logo" width="40" height="40" style="object-fit:contain;display:block" />
+      <div class="brand-text"><strong>SMAN 5 TUBAN</strong><span>Panel Admin</span></div>
+    </div>
+    <div class="auth-pitch">
+      <h2>Akses panel admin MPLS.</h2>
+      <p>Khusus pengelola portal: kelola soal, materi, jadwal, kegiatan, nilai, dan laporan.</p>
+      <div class="auth-bullets">
+        <div><i class="fa-solid fa-shield-halved"></i> Role-based access control</div>
+        <div><i class="fa-solid fa-database"></i> Data tersimpan di Firestore</div>
+        <div><i class="fa-solid fa-file-csv"></i> Export nilai per gugus</div>
+      </div>
+    </div>
+    <small style="color:#8c9ab9">© 2025 SMA Negeri 5 Tuban</small>
+  </aside>
+
+  <main class="auth-form-wrap">
+    <form class="auth-form" id="formAdmin">
+      <h1><i class="fa-solid fa-user-shield" style="color:var(--gold)"></i> Login Admin</h1>
+      <p class="sub">Hanya untuk akun dengan role admin.</p>
+      <div class="field"><label>Email Admin</label>
+        <div class="ctrl"><i class="fa-solid fa-envelope"></i><input type="email" name="email" required></div>
+      </div>
+      <div class="field"><label>Password</label>
+        <div class="ctrl"><i class="fa-solid fa-lock"></i><input type="password" name="password" required></div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block btn-lg" id="btnLogin"><i class="fa-solid fa-right-to-bracket"></i> Masuk Admin</button>
+      <p class="auth-foot"><a href="login.html"><i class="fa-solid fa-user-graduate"></i> Login sebagai Siswa</a></p>
+    </form>
+  </main>
+</div>
+<div id="toast-root"></div>
+<script src="ui.js"></script>
+<script type="module">
+import { loginEmail, getUserProfile, logout } from './auth.js';
+const { toast, btnLoading } = window.MPLSUI;
+document.getElementById('formAdmin').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const btn = document.getElementById('btnLogin');
+  btnLoading(btn, true, 'Memverifikasi...');
+  try {
+    const user = await loginEmail(fd.get('email'), fd.get('password'));
+    const profile = await getUserProfile(user.uid);
+    if (!profile || profile.role !== 'admin') {
+      toast('Akun ini bukan akun admin.', { type: 'error' });
+      await logout(); btnLoading(btn, false); return;
+    }
+    toast('Login admin berhasil.', { type: 'success' });
+    setTimeout(() => location.href = 'admin.html', 700);
+  } catch (err) {
+    btnLoading(btn, false);
+    toast('Email atau password salah.', { type: 'error' });
+  }
+});
+</script>
+<script src="fx.js" defer></script>
+</body>
+</html>
