@@ -1,7 +1,5 @@
-// ============================================================
 // UI Utilities — Loader, Toast, Reveal, Nav, Modal
 // Loaded as classic script (NOT module) — exposes globals on window.
-// ============================================================
 (function () {
   'use strict';
 

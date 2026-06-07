@@ -1,6 +1,4 @@
-// ============================================================
 // Admin Dashboard
-// ============================================================
 import { guardRoute, logout } from './auth.js';
 import { db, SCHOOL_CONFIG } from './firebase-config.js';
 import {

@@ -1,6 +1,4 @@
-// ============================================================
 // Student Dashboard — Router & Pages
-// ============================================================
 import { guardRoute, logout } from './auth.js';
 import { db } from './firebase-config.js';
 import {
@@ -9,11 +7,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 const { toast, btnLoading } = window.MPLSUI;
 
-// ============================================================
-// Anti-cheat scoring rules (versi ringan — fokus anti-contek inti,
-// aman untuk pengguna HP. Tidak lagi memantau devtools, shortcut,
-// refresh, atau fullscreen yang sering false-positive di mobile.)
-// ============================================================
+// Anti-cheat scoring rules 
 export const PENALTY_RULES = {
   tab_hidden: { points: 10, label: 'Pindah tab / minimize' },
   blur:       { points: 8,  label: 'Kehilangan fokus jendela' },

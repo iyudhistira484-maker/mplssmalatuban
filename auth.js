@@ -1,6 +1,4 @@
-// ============================================================
 // Authentication & Role Management
-// ============================================================
 import { auth, db } from './firebase-config.js';
 import {
   createUserWithEmailAndPassword, signInWithEmailAndPassword,

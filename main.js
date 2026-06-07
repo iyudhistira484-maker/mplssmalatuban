@@ -1,5 +1,5 @@
 /* ============================================================
-   Portal MPLS SMAN 5 Tuban — Landing Page (Nusantara Edition)
+   Portal MPLS SMAN 5 Tuban — Landing Page
    ============================================================ */
 (function () {
   'use strict';
