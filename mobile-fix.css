@@ -1,0 +1,729 @@
+/* =====================================================================
+   mobile-fix.css — final mobile polish (load LAST, after fixes-v3.css)
+   Goal: rapikan tampilan mobile, perbaiki bug visual:
+   - Icon overlap di input form (login/register)
+   - Header login (back link vs brand) tumpang tindih
+   - Sidebar admin drawer mobile (item kepotong, brand wrap aneh)
+   - Topbar mobile (Ringkasan + Admin Mode kepepet)
+   - User block di sidebar foot (nama kepotong / berantakan)
+   ===================================================================== */
+
+/* ---------- 1) INPUT WITH ICON (login/register) ---------- */
+.input-wrap{position:relative;display:block;width:100%}
+.input-wrap > input,
+.input-wrap > select,
+.input-wrap > textarea{
+  width:100%;
+  padding:13px 14px 13px 42px !important;
+  border:1px solid var(--line,#e7ddc8);
+  border-radius:12px;
+  background:var(--white,#fff);
+  font-size:15px;
+  font-family:var(--font-sans, inherit);
+  color:var(--ink,#2A1A00);
+  transition:border-color .2s, box-shadow .2s;
+  box-sizing:border-box;
+}
+.input-wrap > select{padding-right:38px !important;appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted,#8b7355) 50%),linear-gradient(135deg,var(--muted,#8b7355) 50%,transparent 50%);background-position:calc(100% - 18px) 55%,calc(100% - 13px) 55%;background-size:5px 5px,5px 5px;background-repeat:no-repeat}
+.input-wrap > input:focus,
+.input-wrap > select:focus,
+.input-wrap > textarea:focus{outline:0;border-color:var(--gold,#C8860A);box-shadow:0 0 0 3px rgba(200,134,10,.15)}
+.input-wrap > i,
+.input-wrap > .fa,
+.input-wrap > svg{
+  position:absolute;
+  left:14px;top:50%;
+  transform:translateY(-50%);
+  pointer-events:none;
+  color:var(--muted,#8b7355);
+  font-size:15px;
+  width:18px;text-align:center;
+  z-index:2;
+}
+.input-wrap > input::placeholder,
+.input-wrap > textarea::placeholder{color:rgba(139,115,85,.55)}
+
+/* ---------- 2) AUTH HEADER MOBILE (login/register) ---------- */
+@media (max-width: 860px){
+  .auth-side{
+    position:relative !important;
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:stretch !important;
+    gap:.5rem !important;
+    padding:.7rem .9rem !important;
+    min-height:auto !important;
+  }
+  .auth-side .auth-back{
+    position:static !important;
+    align-self:flex-start !important;
+    margin:0 !important;
+    padding:.35rem .55rem !important;
+    font-size:.78rem !important;
+    border-radius:8px;
+    background:rgba(253,246,227,.06);
+  }
+  .auth-side .brand{
+    display:flex !important;
+    flex-direction:row !important;
+    align-items:center !important;
+    gap:.55rem !important;
+    margin:0 !important;
+  }
+  .auth-side .brand a{
+    display:flex !important;
+    align-items:center !important;
+    gap:.55rem !important;
+    text-decoration:none;
+  }
+  .auth-side .brand-logo{width:34px !important;height:34px !important;flex:0 0 34px}
+  .auth-side .brand-text{display:flex;flex-direction:column;min-width:0}
+  .auth-side .brand-text strong{
+    font-size:.95rem !important;
+    line-height:1.1 !important;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .auth-side .brand-text span{display:none !important}
+  .auth-pitch, .auth-features, .auth-bullets, .auth-side .copyright{display:none !important}
+}
+
+/* ---------- 3) AUTH FORM SPACING MOBILE ---------- */
+@media (max-width: 860px){
+  .auth-form-wrap{padding:1.1rem .9rem 2rem !important}
+  .auth-form{
+    padding:1.25rem 1rem !important;
+    border-radius:14px;
+    box-shadow:0 6px 24px rgba(44,26,0,.06);
+  }
+  .auth-form h1{font-size:1.4rem !important;margin-bottom:.25rem}
+  .auth-form .sub{font-size:.85rem !important;margin-bottom:1rem !important}
+  .auth-fields{display:flex;flex-direction:column;gap:.85rem}
+  .auth-field{margin:0 !important}
+  .auth-field label{
+    display:block;
+    font-size:.72rem !important;
+    letter-spacing:.12em;
+    margin-bottom:.35rem !important;
+    font-weight:600;
+  }
+  .auth-icon{width:54px !important;height:54px !important;font-size:1.2rem !important}
+  .auth-form-header{margin-bottom:1rem !important}
+  .btn.btn-lg{padding:.85rem 1rem !important;font-size:.95rem !important;letter-spacing:.05em}
+  .auth-footer-links{font-size:.85rem !important}
+}
+
+/* ---------- 4) ADMIN SIDEBAR DRAWER (mobile) ---------- */
+@media (max-width: 860px){
+  .sidebar{
+    width:min(84vw, 290px) !important;
+    max-width:290px !important;
+    overflow-x:hidden !important;
+    overflow-y:auto !important;
+    padding-bottom:env(safe-area-inset-bottom,0);
+  }
+  .sb-head{
+    flex-wrap:nowrap !important;
+    padding:.95rem .9rem !important;
+    gap:.55rem !important;
+  }
+  .sb-head .brand-logo{width:34px !important;height:34px !important;flex:0 0 34px}
+  .sb-head .brand-text{min-width:0;flex:1 1 auto}
+  .sb-head .brand-text strong{
+    display:block;
+    font-size:.85rem !important;
+    line-height:1.15 !important;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .sb-head .brand-text span{font-size:.62rem !important;letter-spacing:.1em}
+
+  .sb-section{padding:.85rem .9rem .3rem !important;font-size:.62rem !important}
+
+  .sb-nav{padding:0 .55rem !important}
+  .sb-link{
+    display:flex !important;
+    align-items:center !important;
+    gap:.65rem !important;
+    width:100% !important;
+    padding:.7rem .8rem !important;
+    font-size:.9rem !important;
+    border-radius:10px !important;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    transform:none !important;
+  }
+  .sb-link i{flex:0 0 18px;font-size:.95rem}
+  .sb-link:hover{transform:none !important}
+  .sb-link.active{padding-left:calc(.8rem - 3px) !important}
+
+  /* foot: user + logout stacked, nama tidak overflow */
+  .sb-foot{padding:.9rem !important}
+  .sb-user{
+    display:flex !important;
+    align-items:center !important;
+    gap:.6rem !important;
+    width:100%;
+    min-width:0;
+  }
+  .sb-user .av{flex:0 0 38px;width:38px !important;height:38px !important;border-radius:50% !important;display:grid;place-items:center;font-weight:700}
+  .sb-user > div{min-width:0;flex:1 1 auto;overflow:hidden}
+  .sb-user strong,
+  .sb-user span{
+    display:block !important;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    max-width:100%;
+  }
+  .sb-foot .btn-block{
+    width:100% !important;
+    margin-top:.7rem !important;
+    justify-content:center !important;
+    display:inline-flex !important;
+    align-items:center;gap:.5rem;
+    padding:.65rem .9rem !important;
+    font-size:.88rem !important;
+  }
+}
+
+/* ---------- 5) ADMIN TOPBAR (mobile) ---------- */
+@media (max-width: 860px){
+  .app{display:block !important}
+  .app .main{margin-left:0 !important;width:100% !important;min-height:100vh}
+  .app .topbar{
+    position:sticky;top:0;z-index:50;
+    display:flex !important;
+    align-items:center !important;
+    gap:.6rem !important;
+    padding:.6rem .8rem !important;
+    min-height:56px;
+    backdrop-filter:saturate(140%) blur(6px);
+  }
+  .sidebar.admin + .main .topbar{background:rgba(26,15,0,.96) !important}
+  .sidebar:not(.admin) + .main .topbar{background:rgba(255,255,255,.96) !important}
+  .app .topbar h1{
+    font-size:1.05rem !important;
+    margin:0 !important;
+    flex:1 1 auto;
+    min-width:0;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .top-actions{flex:0 0 auto;margin-left:auto}
+  .top-actions .badge{
+    padding:.4rem .7rem !important;
+    font-size:.72rem !important;
+    letter-spacing:.06em;
+    border-radius:999px;
+    white-space:nowrap;
+  }
+  .top-actions .badge i{margin-right:.25rem}
+  .sb-toggle{
+    flex:0 0 40px;
+    display:inline-grid !important;place-items:center;
+    width:40px;height:40px;border-radius:10px;
+  }
+  .app .content{padding:.85rem !important}
+}
+
+/* ---------- 6) SAFETY: no horizontal scroll on mobile ---------- */
+@media (max-width: 860px){
+  html,body{max-width:100vw;overflow-x:hidden}
+}
+
+/* ---------- 7) Tiny phones (<=400px) ---------- */
+@media (max-width: 400px){
+  .top-actions .badge{font-size:.68rem !important;padding:.35rem .6rem !important}
+  .app .topbar h1{font-size:.98rem !important}
+  .auth-form h1{font-size:1.25rem !important}
+  .auth-side .brand-text strong{font-size:.85rem !important}
+}
+
+/* ========== 8) ADMIN SIDEBAR — fixed drawer + backdrop (mobile) ========== */
+@media (max-width: 860px){
+  .app{display:block !important; position:relative}
+  .sidebar{
+    position:fixed !important;
+    top:0 !important; left:0 !important;
+    height:100vh !important; height:100dvh !important;
+    z-index:120 !important;
+    transform:translateX(-100%);
+    transition:transform .32s cubic-bezier(.4,0,.2,1);
+    box-shadow:none;
+    will-change:transform;
+  }
+  .sidebar.open{
+    transform:translateX(0) !important;
+    box-shadow:18px 0 50px rgba(0,0,0,.45);
+  }
+  .sidebar-backdrop{
+    position:fixed !important; inset:0 !important;
+    background:rgba(10,6,0,.55) !important;
+    backdrop-filter:blur(3px);
+    -webkit-backdrop-filter:blur(3px);
+    z-index:110 !important;
+    opacity:0; pointer-events:none;
+    transition:opacity .28s ease;
+  }
+  .sidebar-backdrop.show{opacity:1 !important; pointer-events:auto !important}
+  body.sb-locked{overflow:hidden !important; touch-action:none}
+
+  /* Topbar stays at top, no longer covered by sidebar (sidebar is fixed above) */
+  .app .topbar{z-index:50 !important}
+}
+
+/* ========== 9) LANDING NAV — hamburger icon must be visible ========== */
+@media (max-width: 860px){
+  .nav-toggle{
+    display:inline-flex !important;
+    flex-direction:column !important;
+    align-items:center !important;
+    justify-content:center !important;
+    gap:5px !important;
+    width:42px !important; height:42px !important;
+    border:1.5px solid var(--gold,#C8860A) !important;
+    background:rgba(200,134,10,.08) !important;
+    border-radius:10px !important;
+    padding:0 !important;
+    position:relative; z-index:101;
+    cursor:pointer;
+  }
+  .nav-toggle span{
+    display:block !important;
+    width:20px !important; height:2px !important;
+    background:var(--gold,#C8860A) !important;
+    border-radius:2px !important;
+    transition:transform .3s ease, opacity .2s ease !important;
+    opacity:1 !important;
+  }
+  .nav-toggle[aria-expanded="true"] span:nth-child(1){transform:translateY(7px) rotate(45deg) !important}
+  .nav-toggle[aria-expanded="true"] span:nth-child(2){opacity:0 !important}
+  .nav-toggle[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg) !important}
+
+  /* Hide duplicate Login/Daftar mini buttons in topbar when hamburger present (keep menu clean) */
+  .nav-cta .btn-cap-mini,
+  .nav-cta .btn-primary-mini{display:none !important}
+  .nav-cta .btn.btn-cap,
+  .nav-cta .btn.btn-primary{display:none !important}
+  .nav-cta{gap:.5rem !important}
+}
+
+/* ========== 10) MOBILE MENU PANEL — Login/Daftar full width, neat ========== */
+@media (max-width: 860px){
+  .nav-menu{padding:5rem 1.5rem 2rem !important}
+  .nav-menu a{
+    font-size:1.1rem !important;
+    padding:.8rem 0 !important;
+    width:100%;
+    text-align:center;
+  }
+  .nav-menu-cta{
+    display:flex !important;
+    flex-direction:column !important;
+    gap:.7rem !important;
+    width:100% !important;
+    margin-top:1.5rem !important;
+    padding-top:1.5rem !important;
+    border-top:1px dashed rgba(200,134,10,.3);
+  }
+  .nav-menu-cta .btn{
+    width:100% !important;
+    justify-content:center !important;
+    padding:.85rem 1rem !important;
+    font-size:.95rem !important;
+  }
+}
+
+/* ========== 11) GLOBAL — prevent first-row of admin sidebar nav being clipped ========== */
+@media (max-width: 860px){
+  .sidebar{padding-top:0 !important}
+  .sb-head{position:sticky;top:0;background:inherit;z-index:2}
+  .sidebar.admin .sb-head{background:var(--bg-dark,#1A0F00) !important}
+}
+
+/* ========== 12) Cards / panels safety on small screens ========== */
+@media (max-width: 860px){
+  .kpi, .panel, .card{min-width:0 !important}
+  .kpi-top, .panel-head{flex-wrap:wrap}
+  table{display:block;overflow-x:auto;max-width:100%}
+  img, svg, video{max-width:100%;height:auto}
+}
+
+/* ===================================================
+   DASHBOARD REDESIGN — Admin & Student
+   =================================================== */
+
+/* Welcome Banner */
+.db-welcome {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--grad-dark);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.25rem;
+  color: var(--secondary-soft);
+  overflow: hidden;
+  position: relative;
+}
+.db-welcome::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23C8860A' fill-opacity='0.06'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  opacity: 0.4;
+  pointer-events: none;
+}
+.db-welcome-text { position: relative; z-index: 1; }
+.db-welcome-label {
+  display: block;
+  font-size: .75rem;
+  font-family: var(--font-accent);
+  letter-spacing: .08em;
+  color: var(--secondary);
+  text-transform: uppercase;
+  margin-bottom: .25rem;
+}
+.db-welcome-name {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #FDF6E3;
+  margin: 0 0 .35rem;
+  line-height: 1.2;
+}
+.db-welcome-date {
+  font-size: .78rem;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+}
+.db-welcome-icon {
+  position: relative;
+  z-index: 1;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: rgba(200,134,10,.18);
+  border: 1.5px solid rgba(200,134,10,.3);
+  display: grid;
+  place-items: center;
+  font-size: 1.5rem;
+  color: var(--secondary);
+  flex-shrink: 0;
+}
+.db-welcome-student { background: linear-gradient(160deg, #1A3A00 0%, #0E2000 100%); }
+.db-welcome-icon-student {
+  background: rgba(45,80,22,.35);
+  border-color: rgba(45,80,22,.5);
+  color: #7BC45A;
+}
+
+/* KPI Cards — redesigned */
+.kpi {
+  display: flex;
+  align-items: center;
+  gap: .875rem;
+  padding: .9rem 1rem !important;
+}
+.kpi-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-sm);
+  display: grid;
+  place-items: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+.kpi-body { flex: 1; min-width: 0; }
+.kpi-body strong {
+  display: block;
+  font-family: var(--font-accent);
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--ink);
+}
+.kpi-label {
+  display: block;
+  font-size: .78rem;
+  font-weight: 700;
+  font-family: var(--font-sans);
+  color: var(--ink);
+  margin: .2rem 0 .1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.kpi-body small {
+  font-size: .72rem;
+  color: var(--muted);
+  font-family: var(--font-sans);
+}
+
+/* KPI color variants */
+.kpi.kpi-red .kpi-icon { background: var(--primary-soft); color: var(--primary); }
+.kpi.kpi-gold .kpi-icon { background: var(--secondary-soft); color: var(--secondary); }
+.kpi.kpi-green .kpi-icon { background: var(--accent-soft); color: var(--accent); }
+.kpi.kpi-brown .kpi-icon { background: #F3EAD8; color: #6B3A1F; }
+
+.kpi.kpi-red::before { background: var(--grad-primary) !important; }
+.kpi.kpi-gold::before { background: var(--grad-gold) !important; }
+.kpi.kpi-green::before { background: linear-gradient(90deg,var(--accent),#3D6B1E) !important; }
+.kpi.kpi-brown::before { background: linear-gradient(90deg,#6B4423,#8B5A2B) !important; }
+
+/* Stat list in panel */
+.db-stat-list { display: flex; flex-direction: column; gap: .6rem; }
+.db-stat-item {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  padding: .55rem .75rem;
+  background: var(--bg-soft);
+  border-radius: var(--radius-sm);
+  font-size: .875rem;
+}
+.db-stat-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.dot-red { background: var(--primary); }
+.dot-gold { background: var(--secondary); }
+.dot-green { background: var(--accent); }
+.dot-brown { background: #6B3A1F; }
+.db-stat-key { flex: 1; color: var(--muted); }
+.db-stat-item b { font-family: var(--font-accent); color: var(--ink); }
+
+/* Two-column row for panels */
+.db-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+/* Quick action grid */
+.db-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: .6rem;
+}
+.db-quick-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .4rem;
+  padding: .75rem .5rem;
+  background: var(--bg-soft);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--ink-2);
+  transition: all .2s;
+}
+.db-quick-btn:hover {
+  background: var(--primary-soft);
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: translateY(-2px);
+}
+.db-quick-btn i { font-size: 1.1rem; color: var(--secondary); }
+
+/* Student CTA */
+.db-cta-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .6rem;
+}
+.db-cta-main { flex: 1; min-width: 140px; }
+
+/* ===================================================
+   MOBILE: keep kpi-grid at 2 columns
+   =================================================== */
+@media (max-width: 640px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr) !important; gap: .6rem !important; }
+
+  .db-welcome { padding: 1rem 1.1rem; }
+  .db-welcome-name { font-size: 1.2rem; }
+  .db-welcome-icon { width: 46px; height: 46px; font-size: 1.2rem; }
+
+  .kpi { flex-direction: column; align-items: flex-start; gap: .4rem; padding: .75rem !important; }
+  .kpi-icon { width: 36px; height: 36px; font-size: .95rem; }
+  .kpi-body strong { font-size: 1.3rem; }
+  .kpi-label { font-size: .72rem; }
+
+  .db-row { grid-template-columns: 1fr; }
+  .db-quick-grid { grid-template-columns: repeat(3, 1fr); gap: .5rem; }
+  .db-quick-btn { padding: .65rem .3rem; font-size: .72rem; }
+  .db-cta-btns { flex-direction: column; }
+  .db-cta-main { min-width: unset; }
+}
+
+/* ============================================================
+   MOBILE OVERHAUL v2 — Bottom Nav + Full-Width Cards
+   Load last. Replaces hamburger sidebar drawer on mobile.
+   ============================================================ */
+
+/* ---- Hide sidebar & hamburger completely on mobile ---- */
+@media (max-width: 860px) {
+  .sidebar { display: none !important; }
+  .sb-toggle { display: none !important; }
+  .app { display: block !important; }
+  .app .main { margin-left: 0 !important; width: 100% !important; min-height: 100vh; }
+  .app .content {
+    padding: .85rem .85rem calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  .app .topbar {
+    position: sticky; top: 0; z-index: 50;
+    display: flex !important; align-items: center !important;
+    gap: .6rem !important; padding: .65rem 1rem !important; min-height: 52px;
+  }
+  /* No hamburger — center title */
+  .app .topbar h1 {
+    flex: 1; text-align: left;
+    font-size: 1.1rem !important; margin: 0 !important;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .top-actions { flex: 0 0 auto; margin-left: auto; }
+  .top-actions .badge {
+    padding: .35rem .65rem !important; font-size: .72rem !important;
+    white-space: nowrap; border-radius: 999px;
+  }
+}
+
+/* ---- KPI cards: 1 column full width on mobile ---- */
+@media (max-width: 860px) {
+  .kpi-grid {
+    grid-template-columns: 1fr !important;
+    gap: .75rem !important;
+    margin-bottom: 1rem !important;
+  }
+  .kpi {
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: .875rem !important;
+    padding: .9rem 1rem !important;
+  }
+  .kpi-icon { width: 44px; height: 44px; flex-shrink: 0; }
+  .kpi-body strong { font-size: 1.55rem; }
+  .kpi-label { font-size: .8rem; }
+
+  /* Panels & rows full width */
+  .db-row { grid-template-columns: 1fr !important; gap: .75rem !important; }
+  .panel { width: 100% !important; box-sizing: border-box !important; }
+  .db-quick-grid { grid-template-columns: repeat(3,1fr) !important; }
+}
+
+/* ============================================================
+   BOTTOM NAVIGATION BAR
+   ============================================================ */
+.mobile-bottom-nav { display: none; }
+
+@media (max-width: 860px) {
+  .mobile-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 200;
+    background: #1A0F00;
+    border-top: 1.5px solid rgba(200,134,10,.22);
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+    align-items: stretch;
+    box-shadow: 0 -4px 24px rgba(0,0,0,.4);
+  }
+  .mobile-bottom-nav.mbn-student {
+    background: #fff;
+    border-top: 1.5px solid #e7ddc8;
+    box-shadow: 0 -4px 20px rgba(44,26,0,.08);
+  }
+  .mbn-item {
+    flex: 1;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 3px; padding: 5px 2px;
+    border: none; background: transparent;
+    cursor: pointer;
+    color: rgba(253,246,227,.38);
+    font-family: var(--font-sans, sans-serif);
+    font-size: 9.5px; font-weight: 700;
+    letter-spacing: .02em;
+    transition: color .18s, transform .18s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mbn-item i {
+    font-size: 19px;
+    transition: transform .2s cubic-bezier(.34,1.56,.64,1);
+    display: block;
+  }
+  .mbn-item.active { color: #C8860A; }
+  .mbn-item.active i { transform: translateY(-2px) scale(1.1); }
+  .mbn-item:active { transform: scale(.92); }
+
+  /* Student nav colors */
+  .mbn-student .mbn-item { color: rgba(42,26,0,.38); }
+  .mbn-student .mbn-item.active { color: #8B1A1A; }
+
+  /* ---- More bottom sheet ---- */
+  .mbn-backdrop {
+    position: fixed; inset: 0; z-index: 210;
+    background: rgba(10,6,0,.55);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    opacity: 0; pointer-events: none;
+    transition: opacity .25s;
+  }
+  .mbn-backdrop.show { opacity: 1; pointer-events: auto; }
+
+  .mbn-sheet {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    z-index: 220;
+    background: #fff;
+    border-radius: 20px 20px 0 0;
+    padding: .5rem 1rem calc(80px + env(safe-area-inset-bottom,0px));
+    transform: translateY(100%);
+    transition: transform .3s cubic-bezier(.4,0,.2,1);
+    box-shadow: 0 -8px 40px rgba(0,0,0,.22);
+  }
+  .mbn-sheet.show { transform: translateY(0); }
+  .mbn-sheet-handle {
+    width: 42px; height: 4px;
+    background: #e0d5c5; border-radius: 2px;
+    margin: .5rem auto .8rem;
+  }
+  .mbn-sheet-title {
+    font-family: var(--font-display, serif);
+    font-size: .92rem; font-weight: 600;
+    color: var(--ink, #2A1A00);
+    text-align: center; margin-bottom: .9rem;
+    letter-spacing: .04em;
+  }
+  .mbn-sheet-grid {
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: .6rem;
+  }
+  .mbn-sheet-item {
+    display: flex; flex-direction: column;
+    align-items: center; gap: .4rem;
+    padding: .75rem .4rem;
+    background: #faf6ef;
+    border: 1.5px solid #e7ddc8;
+    border-radius: 12px; cursor: pointer;
+    font-size: .78rem; font-weight: 700;
+    color: #4A3728;
+    font-family: var(--font-sans, sans-serif);
+    transition: all .18s;
+    -webkit-tap-highlight-color: transparent;
+    text-align: center; line-height: 1.2;
+  }
+  .mbn-sheet-item i { font-size: 1.2rem; color: #C8860A; }
+  .mbn-sheet-item:active {
+    background: #f9e8e8; border-color: #8B1A1A;
+    color: #8B1A1A;
+  }
+  .mbn-sheet-item:active i { color: #8B1A1A; }
+}

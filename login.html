@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Login Siswa — SMAN 5 Tuban MPLS</title>
+<link rel="icon" href="logo.png" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Cinzel:wght@400;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="fx.css" />
+<link rel="stylesheet" href="polish-v2.css" />
+<style>
+/* ========== AUTH PAGE REDESIGN ========== */
+.auth-wrap{min-height:100vh;display:flex;flex-direction:column;background:var(--bg)}
+@media(min-width:861px){.auth-wrap{flex-direction:row}}
+
+/* Left Side - Decorative Panel */
+.auth-side{
+  position:relative;
+  background:linear-gradient(160deg,#1A0F00 0%,#3D1A07 50%,#5C2E0A 100%);
+  color:var(--white);
+  padding:clamp(1.5rem,4vw,3rem);
+  display:flex;flex-direction:column;
+  min-height:280px;
+  overflow:hidden;
+}
+.auth-side::before{
+  content:"";
+  position:absolute;inset:0;
+  background-image:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cg fill='none' stroke='%23C8860A' stroke-width='0.8' opacity='0.15'%3E%3Ccircle cx='25' cy='25' r='18'/%3E%3Ccircle cx='75' cy='25' r='18'/%3E%3Ccircle cx='25' cy='75' r='18'/%3E%3Ccircle cx='75' cy='75' r='18'/%3E%3Ccircle cx='50' cy='50' r='4' fill='%23C8860A'/%3E%3C/g%3E%3C/svg%3E");
+  background-size:100px 100px;
+  opacity:.3;pointer-events:none;
+}
+.auth-side::after{
+  content:"";
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse at 20% 30%,rgba(200,134,10,.25),transparent 50%),
+            radial-gradient(ellipse at 80% 70%,rgba(139,37,0,.2),transparent 50%);
+  pointer-events:none;
+}
+.auth-side > *{position:relative;z-index:1}
+
+.auth-back{
+  display:inline-flex;align-items:center;gap:.4rem;
+  color:rgba(253,246,227,.55);font-size:.85rem;
+  margin-bottom:1.5rem;transition:color .2s;
+}
+.auth-back:hover{color:var(--secondary)}
+.auth-side .brand{margin-bottom:1.5rem}
+.auth-side .brand-logo{width:48px;height:48px;object-fit:contain}
+
+.auth-pitch{flex:1;display:flex;flex-direction:column;justify-content:center}
+.auth-pitch h2{
+  font-family:var(--font-display);
+  font-size:clamp(1.5rem,4vw,2.2rem);
+  font-weight:700;line-height:1.2;
+  margin-bottom:.75rem;color:var(--white);
+}
+.auth-pitch p{color:rgba(253,246,227,.75);font-size:.95rem;max-width:360px;line-height:1.6}
+.auth-side .copyright{color:rgba(253,246,227,.4);font-size:.75rem;margin-top:auto;padding-top:1rem}
+
+/* Mobile: hide pitch text, show only branding */
+@media(max-width:860px){
+  .auth-pitch{display:none}
+  .auth-side{min-height:120px;padding:1rem 1.25rem}
+  .auth-side .brand{margin-bottom:0}
+  .auth-back{margin-bottom:.75rem}
+}
+
+/* Right Side - Form */
+.auth-form-wrap{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  padding:clamp(1.5rem,4vw,3rem);
+  background:var(--bg);
+  position:relative;
+}
+.auth-form-wrap::before{
+  content:"";
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse at 70% 20%,rgba(200,134,10,.08),transparent 50%);
+  pointer-events:none;
+}
+
+.auth-form{
+  width:100%;max-width:420px;
+  padding:clamp(1.5rem,4vw,2.5rem);
+  background:var(--white);
+  border:1px solid var(--line);
+  border-radius:var(--radius-lg);
+  box-shadow:0 8px 40px rgba(44,26,0,.08),0 2px 8px rgba(44,26,0,.04);
+  position:relative;z-index:1;
+}
+
+.auth-form-header{text-align:center;margin-bottom:2rem}
+.auth-form-header .auth-icon{
+  width:64px;height:64px;margin:0 auto 1rem;
+  background:linear-gradient(135deg,var(--primary),#B03000);
+  border-radius:50%;
+  display:grid;place-items:center;
+  font-size:1.5rem;color:var(--white);
+  box-shadow:0 8px 24px rgba(139,37,0,.25);
+}
+.auth-form-header h1{
+  font-family:var(--font-display);
+  font-size:clamp(1.35rem,4vw,1.75rem);
+  font-weight:700;color:var(--ink);
+  margin-bottom:.25rem;
+}
+.auth-form-header .sub{color:var(--muted);font-size:.9rem;font-style:italic}
+
+/* Form Fields */
+.auth-fields{display:flex;flex-direction:column;gap:1rem}
+.auth-field{position:relative}
+.auth-field label{
+  display:block;
+  font-family:var(--font-accent);
+  font-size:.7rem;font-weight:600;
+  letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-2);margin-bottom:.4rem;
+}
+.auth-field .input-wrap{
+  position:relative;
+  display:flex;align-items:center;
+}
+.auth-field .input-wrap i{
+  position:absolute;left:14px;
+  color:var(--muted);font-size:.9rem;
+  transition:color .2s;
+}
+.auth-field input{
+  width:100%;
+  padding:.85rem 1rem .85rem 2.75rem;
+  border:2px solid var(--line);
+  border-radius:var(--radius-sm);
+  background:var(--bg);
+  font-family:var(--font-sans);font-size:.95rem;
+  color:var(--ink);
+  transition:border-color .2s,box-shadow .2s;
+}
+.auth-field input::placeholder{color:rgba(122,92,58,.5)}
+.auth-field input:focus{
+  outline:none;
+  border-color:var(--secondary);
+  box-shadow:0 0 0 4px rgba(200,134,10,.12);
+}
+.auth-field input:focus + i,
+.auth-field .input-wrap:focus-within i{color:var(--secondary)}
+.auth-field .err{display:block;color:var(--primary);font-size:.75rem;margin-top:.3rem;min-height:1.1em}
+
+/* Submit Button */
+.auth-submit{margin-top:.5rem}
+.auth-submit .btn{
+  width:100%;min-height:52px;
+  font-size:1rem;font-weight:700;
+  letter-spacing:.02em;
+}
+
+/* Footer Links */
+.auth-footer-links{margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--line-2);text-align:center}
+.auth-footer-links p{color:var(--muted);font-size:.9rem;margin-bottom:.5rem}
+.auth-footer-links a{color:var(--primary);font-weight:600;transition:color .2s}
+.auth-footer-links a:hover{color:var(--secondary)}
+.auth-alt-link{
+  display:inline-flex;align-items:center;gap:.4rem;
+  color:var(--muted);font-size:.85rem;
+  margin-top:.75rem;transition:color .2s;
+}
+.auth-alt-link:hover{color:var(--secondary)}
+
+/* Mobile Branding Strip (shown on mobile) */
+@media(max-width:860px){
+  .auth-form{padding:clamp(1.25rem,3vw,1.75rem)}
+  .auth-form-header .auth-icon{width:56px;height:56px;font-size:1.25rem}
+  .auth-form-header{margin-bottom:1.5rem}
+  .auth-fields{gap:.85rem}
+  .auth-field input{font-size:1rem;padding-left:2.6rem}
+}
+</style>
+<link rel="stylesheet" href="nusantara-global.css" />
+<link rel="stylesheet" href="fixes-v3.css" />
+<link rel="stylesheet" href="mobile-fix.css" />
+<link rel="stylesheet" href="nav-nusantara.css" />
+</head>
+<body>
+<div class="nu-garuda-bg" aria-hidden="true"></div>
+<div class="auth-wrap">
+  <aside class="auth-side">
+    <a href="index.html" class="auth-back"><i class="fa-solid fa-arrow-left"></i> Kembali ke beranda</a>
+    <div class="brand">
+      <a href="index.html" style="display:flex;align-items:center;gap:.75rem;color:inherit">
+        <img src="logo.png" alt="SMAN 5 Tuban" class="brand-logo" width="48" height="48" style="object-fit:contain;display:block" />
+        <div class="brand-text"><strong>SMAN 5 TUBAN</strong><span>MPLS 2026</span></div>
+      </a>
+    </div>
+    <div class="auth-pitch">
+      <h2>Selamat datang kembali.</h2>
+      <p>Masuk untuk melanjutkan perjalanan MPLS-mu — akses materi, soal, jadwal, dan kegiatan dalam satu portal.</p>
+    </div>
+    <small class="copyright">© 2026 SMA Negeri 5 Tuban</small>
+  </aside>
+
+  <main class="auth-form-wrap">
+    <form class="auth-form" id="formLogin">
+      <div class="auth-form-header">
+        <div class="auth-icon"><i class="fa-solid fa-user-graduate"></i></div>
+        <h1>Login Siswa</h1>
+        <p class="sub">Gunakan akun yang telah didaftarkan.</p>
+      </div>
+
+      <div class="auth-fields">
+        <div class="auth-field">
+          <label for="email">Email</label>
+          <div class="input-wrap">
+            <input type="email" name="email" id="email" placeholder="contoh@email.com" required autocomplete="email">
+            <i class="fa-solid fa-envelope"></i>
+          </div>
+          <span class="err"></span>
+        </div>
+        <div class="auth-field">
+          <label for="password">Password</label>
+          <div class="input-wrap">
+            <input type="password" name="password" id="password" placeholder="Masukkan password" required autocomplete="current-password">
+            <i class="fa-solid fa-lock"></i>
+          </div>
+          <span class="err"></span>
+        </div>
+      </div>
+
+      <div class="auth-submit">
+        <button type="submit" class="btn btn-primary btn-block btn-lg" id="btnLogin">
+          <i class="fa-solid fa-right-to-bracket"></i> Masuk
+        </button>
+      </div>
+
+      <div class="auth-footer-links">
+        <p>Belum punya akun? <a href="register.html">Daftar di sini</a></p>
+        <a href="admin-login.html" class="auth-alt-link"><i class="fa-solid fa-user-shield"></i> Login Admin</a>
+      </div>
+    </form>
+  </main>
+</div>
+
+<div id="toast-root"></div>
+<script src="ui.js"></script>
+<script type="module">
+import { loginEmail, getUserProfile } from './auth.js';
+const { toast, btnLoading } = window.MPLSUI;
+
+document.getElementById('formLogin').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const btn = document.getElementById('btnLogin');
+  btnLoading(btn, true, 'Memverifikasi...');
+  try {
+    const user = await loginEmail(fd.get('email'), fd.get('password'));
+    const profile = await getUserProfile(user.uid);
+    if (!profile || profile.role !== 'student') {
+      toast('Akun ini bukan akun siswa.', { type: 'error' });
+      const { logout } = await import('./auth.js'); await logout();
+      btnLoading(btn, false); return;
+    }
+    toast('Login berhasil.', { type: 'success' });
+    try {
+      const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+      const { db } = await import('./firebase-config.js');
+      const today = new Date().toISOString().slice(0,10);
+      const attSnap = await getDoc(doc(db, 'attendance', `${user.uid}_${today}`));
+      if (attSnap.exists() && attSnap.data().status === 'hadir') {
+        setTimeout(() => location.href = 'student.html', 600);
+      } else {
+        setTimeout(() => location.href = 'attendance.html', 800);
+      }
+    } catch(_) {
+      setTimeout(() => location.href = 'attendance.html', 800);
+    }
+  } catch (err) {
+    btnLoading(btn, false);
+    let msg = 'Email atau password salah.';
+    if (err.message.includes('user-not-found')) msg = 'Email belum terdaftar. Silakan daftar dulu.';
+    toast(msg, { type: 'error' });
+  }
+});
+</script>
+<script src="fx.js" defer></script>
+</body>
+</html>

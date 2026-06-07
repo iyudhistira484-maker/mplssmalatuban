@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Login Admin — SMAN 5 Tuban MPLS</title>
+<link rel="icon" href="logo.png" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Cinzel:wght@400;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="fx.css" />
+<link rel="stylesheet" href="polish-v2.css" />
+<style>
+/* ========== ADMIN AUTH PAGE ========== */
+.auth-wrap{min-height:100vh;display:flex;flex-direction:column;background:var(--bg)}
+@media(min-width:861px){.auth-wrap{flex-direction:row}}
+
+.auth-side{
+  position:relative;
+  background:linear-gradient(160deg,#0B0700 0%,#1A0F00 50%,#2C1A00 100%);
+  color:#FDF6E3;
+  padding:clamp(1.5rem,4vw,3rem);
+  display:flex;flex-direction:column;
+  min-height:260px;overflow:hidden;
+}
+.auth-side::before{
+  content:"";position:absolute;inset:0;
+  background-image:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cg fill='none' stroke='%23C8860A' stroke-width='0.8' opacity='0.18'%3E%3Ccircle cx='25' cy='25' r='18'/%3E%3Ccircle cx='75' cy='25' r='18'/%3E%3Ccircle cx='25' cy='75' r='18'/%3E%3Ccircle cx='75' cy='75' r='18'/%3E%3Ccircle cx='50' cy='50' r='4' fill='%23C8860A'/%3E%3C/g%3E%3C/svg%3E");
+  background-size:100px 100px;opacity:.45;pointer-events:none;
+}
+.auth-side::after{
+  content:"";position:absolute;inset:0;
+  background:radial-gradient(ellipse at 20% 30%,rgba(200,134,10,.3),transparent 55%),
+            radial-gradient(ellipse at 80% 70%,rgba(139,37,0,.2),transparent 50%);
+  pointer-events:none;
+}
+.auth-side > *{position:relative;z-index:1}
+.auth-back{display:inline-flex;align-items:center;gap:.4rem;color:rgba(253,246,227,.55);font-size:.85rem;margin-bottom:1.5rem;transition:color .2s}
+.auth-back:hover{color:#C8860A}
+.auth-side .brand{display:flex;align-items:center;gap:.75rem;margin-bottom:1.5rem}
+.auth-side .brand-logo{width:48px;height:48px;object-fit:contain;display:block}
+.auth-side .brand-text strong{color:#C8860A;font-family:var(--font-display);font-size:1rem;letter-spacing:.04em;display:block}
+.auth-side .brand-text span{color:rgba(253,246,227,.6);font-size:.75rem}
+.auth-pitch{flex:1;display:flex;flex-direction:column;justify-content:center}
+.auth-pitch h2{font-family:var(--font-display);font-size:clamp(1.5rem,4vw,2.1rem);font-weight:700;line-height:1.2;margin-bottom:.75rem;color:#FDF6E3}
+.auth-pitch p{color:rgba(253,246,227,.75);font-size:.95rem;max-width:360px;line-height:1.6;margin-bottom:1rem}
+.auth-features{display:flex;flex-direction:column;gap:.5rem;margin-top:.5rem}
+.auth-feature{
+  display:flex;align-items:center;gap:.6rem;
+  padding:.55rem .8rem;
+  background:rgba(253,246,227,.05);
+  border:1px solid rgba(200,134,10,.25);
+  border-radius:8px;
+  font-size:.85rem;color:rgba(253,246,227,.85);
+}
+.auth-feature i{color:#C8860A;font-size:.9rem}
+.auth-side .copyright{color:rgba(253,246,227,.4);font-size:.75rem;margin-top:auto;padding-top:1rem}
+
+.auth-form-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:clamp(1.5rem,4vw,3rem);background:var(--bg);position:relative}
+.auth-form-wrap::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 70% 20%,rgba(200,134,10,.08),transparent 50%);pointer-events:none}
+
+.auth-form{
+  width:100%;max-width:420px;
+  padding:clamp(1.5rem,4vw,2.5rem);
+  background:var(--white);
+  border:1px solid var(--line);
+  border-radius:var(--radius-lg);
+  box-shadow:0 8px 40px rgba(44,26,0,.08),0 2px 8px rgba(44,26,0,.04);
+  position:relative;z-index:1;
+}
+.auth-form-header{text-align:center;margin-bottom:2rem}
+.auth-form-header .auth-icon{
+  width:64px;height:64px;margin:0 auto 1rem;
+  background:linear-gradient(135deg,#C8860A,#8B5E00);
+  border-radius:50%;display:grid;place-items:center;
+  font-size:1.5rem;color:#fff;
+  box-shadow:0 8px 24px rgba(200,134,10,.3);
+}
+.auth-form-header h1{font-family:var(--font-display);font-size:clamp(1.35rem,4vw,1.75rem);font-weight:700;color:var(--ink);margin-bottom:.25rem}
+.auth-form-header .sub{color:var(--muted);font-size:.9rem;font-style:italic}
+
+.auth-fields{display:flex;flex-direction:column;gap:1rem}
+.auth-field{position:relative}
+.auth-field label{display:block;font-family:var(--font-accent);font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);margin-bottom:.4rem}
+.auth-field .input-wrap{position:relative;display:flex;align-items:center}
+.auth-field .input-wrap i{position:absolute;left:14px;color:var(--muted);font-size:.9rem;transition:color .2s;pointer-events:none}
+.auth-field input{
+  width:100%;padding:.85rem 1rem .85rem 2.75rem;
+  border:2px solid var(--line);border-radius:var(--radius-sm);
+  background:var(--bg);font-family:var(--font-sans);font-size:.95rem;
+  color:var(--ink);transition:border-color .2s,box-shadow .2s;
+}
+.auth-field input::placeholder{color:rgba(122,92,58,.5)}
+.auth-field input:focus{outline:none;border-color:#C8860A;box-shadow:0 0 0 4px rgba(200,134,10,.15)}
+.auth-field .input-wrap:focus-within i{color:#C8860A}
+
+.auth-submit{margin-top:.5rem}
+.auth-submit .btn{width:100%;min-height:52px;font-size:1rem;font-weight:700;letter-spacing:.02em}
+
+.auth-footer-links{margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--line-2);text-align:center}
+.auth-footer-links a{color:var(--primary);font-weight:600;display:inline-flex;align-items:center;gap:.4rem;transition:color .2s}
+.auth-footer-links a:hover{color:#C8860A}
+
+@media(max-width:860px){
+  .auth-pitch,.auth-features{display:none}
+  .auth-side{min-height:120px;padding:1rem 1.25rem}
+  .auth-side .brand{margin-bottom:0}
+  .auth-back{margin-bottom:.75rem}
+  .auth-form{padding:clamp(1.25rem,3vw,1.75rem)}
+  .auth-form-header .auth-icon{width:56px;height:56px;font-size:1.25rem}
+  .auth-form-header{margin-bottom:1.5rem}
+  .auth-fields{gap:.85rem}
+  .auth-field input{font-size:1rem;padding-left:2.6rem}
+}
+</style>
+<link rel="stylesheet" href="nusantara-global.css" />
+<link rel="stylesheet" href="fixes-v3.css" />
+<link rel="stylesheet" href="mobile-fix.css" />
+<link rel="stylesheet" href="nav-nusantara.css" />
+</head>
+<body class="admin-auth">
+<div class="nu-garuda-bg" aria-hidden="true"></div>
+<div class="auth-wrap">
+  <aside class="auth-side">
+    <a href="index.html" class="auth-back"><i class="fa-solid fa-arrow-left"></i> Kembali ke beranda</a>
+    <div class="brand">
+      <img src="logo.png" alt="SMAN 5 Tuban" class="brand-logo" />
+      <div class="brand-text"><strong>SMAN 5 TUBAN</strong><span>Panel Admin</span></div>
+    </div>
+    <div class="auth-pitch">
+      <h2>Akses Panel Admin MPLS.</h2>
+      <p>Khusus pengelola portal: kelola soal, materi, jadwal, kegiatan, nilai, dan laporan secara menyeluruh.</p>
+      <div class="auth-features">
+        <div class="auth-feature"><i class="fa-solid fa-shield-halved"></i> Role-based access control</div>
+        <div class="auth-feature"><i class="fa-solid fa-database"></i> Tersimpan di Firestore</div>
+        <div class="auth-feature"><i class="fa-solid fa-file-csv"></i> Export nilai per gugus</div>
+      </div>
+    </div>
+    <small class="copyright">© 2026 SMA Negeri 5 Tuban</small>
+  </aside>
+
+  <main class="auth-form-wrap">
+    <form class="auth-form" id="formAdmin">
+      <div class="auth-form-header">
+        <div class="auth-icon"><i class="fa-solid fa-user-shield"></i></div>
+        <h1>Login Admin</h1>
+        <p class="sub">Hanya untuk akun dengan role admin.</p>
+      </div>
+
+      <div class="auth-fields">
+        <div class="auth-field">
+          <label for="email">Email Admin</label>
+          <div class="input-wrap">
+            <input type="email" name="email" id="email" placeholder="admin@sman5tuban.sch.id" required autocomplete="email">
+            <i class="fa-solid fa-envelope"></i>
+          </div>
+        </div>
+        <div class="auth-field">
+          <label for="password">Password</label>
+          <div class="input-wrap">
+            <input type="password" name="password" id="password" placeholder="Masukkan password admin" required autocomplete="current-password">
+            <i class="fa-solid fa-lock"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="auth-submit">
+        <button type="submit" class="btn btn-primary btn-block btn-lg" id="btnLogin">
+          <i class="fa-solid fa-right-to-bracket"></i> Masuk Admin
+        </button>
+      </div>
+
+      <div class="auth-footer-links">
+        <a href="login.html"><i class="fa-solid fa-user-graduate"></i> Login sebagai Siswa</a>
+      </div>
+    </form>
+  </main>
+</div>
+
+<div id="toast-root"></div>
+<script src="ui.js"></script>
+<script type="module">
+import { loginEmail, getUserProfile, logout } from './auth.js';
+const { toast, btnLoading } = window.MPLSUI;
+document.getElementById('formAdmin').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const btn = document.getElementById('btnLogin');
+  btnLoading(btn, true, 'Memverifikasi...');
+  try {
+    const user = await loginEmail(fd.get('email'), fd.get('password'));
+    const profile = await getUserProfile(user.uid);
+    if (!profile || profile.role !== 'admin') {
+      toast('Akun ini bukan akun admin.', { type: 'error' });
+      await logout(); btnLoading(btn, false); return;
+    }
+    toast('Login admin berhasil.', { type: 'success' });
+    setTimeout(() => location.href = 'admin.html', 700);
+  } catch (err) {
+    btnLoading(btn, false);
+    toast('Email atau password salah.', { type: 'error' });
+  }
+});
+</script>
+<script src="fx.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SMA Negeri 5 Tuban — MPLS 2026 | Portal Resmi</title>
+<meta name="description" content="Portal resmi MPLS SMA Negeri 5 Tuban. Pendaftaran siswa baru, materi, jadwal, soal, absensi GPS, dan rating OSIS dalam satu platform bernuansa Nusantara." />
+<meta name="theme-color" content="#8B2500" />
+<link rel="icon" href="logo.png" type="image/png" />
+
+<!-- Google Fonts: Nusantara typography stack -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Playfair+Display:wght@600;700;800;900&family=Cormorant+Garamond:wght@500;600;700&family=Lora:wght@400;500;600;700&family=Abril+Fatface&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="nusantara.css" />
+<link rel="stylesheet" href="nusantara-global.css" />
+<link rel="stylesheet" href="fixes-v3.css" />
+<link rel="stylesheet" href="mobile-fix.css" />
+<link rel="stylesheet" href="nav-nusantara.css" />
+<link rel="stylesheet" href="hero-batik.css" />
+</head>
+<body>
+
+<!-- ============== SVG SYMBOLS: motif Nusantara inline ============== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- Motif Kawung -->
+    <pattern id="kawung" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
+      <g fill="none" stroke="currentColor" stroke-width="1.2">
+        <ellipse cx="20" cy="20" rx="14" ry="20"/>
+        <ellipse cx="60" cy="20" rx="14" ry="20"/>
+        <ellipse cx="20" cy="60" rx="14" ry="20"/>
+        <ellipse cx="60" cy="60" rx="14" ry="20"/>
+        <circle cx="40" cy="40" r="3"/>
+      </g>
+    </pattern>
+    <!-- Motif Parang -->
+    <pattern id="parang" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <g fill="none" stroke="currentColor" stroke-width="1.4">
+        <path d="M0,30 Q15,0 30,30 T60,30"/>
+        <path d="M0,45 Q15,15 30,45 T60,45"/>
+      </g>
+    </pattern>
+    <!-- Motif Truntum (bunga kecil) -->
+    <pattern id="truntum" x="0" y="0" width="50" height="50" patternUnits="userSpaceOnUse">
+      <g fill="none" stroke="currentColor" stroke-width="1">
+        <circle cx="25" cy="25" r="3"/>
+        <path d="M25,10 L27,22 L25,25 L23,22 Z M25,40 L27,28 L25,25 L23,28 Z M10,25 L22,27 L25,25 L22,23 Z M40,25 L28,27 L25,25 L28,23 Z"/>
+      </g>
+    </pattern>
+
+    <!-- Ornamen tumpal (segitiga berjajar) -->
+    <symbol id="tumpal" viewBox="0 0 100 10" preserveAspectRatio="none">
+      <path d="M0,10 L5,0 L10,10 L15,0 L20,10 L25,0 L30,10 L35,0 L40,10 L45,0 L50,10 L55,0 L60,10 L65,0 L70,10 L75,0 L80,10 L85,0 L90,10 L95,0 L100,10 Z" fill="currentColor"/>
+    </symbol>
+
+    <!-- Border ukiran Jepara sederhana -->
+    <symbol id="ukiran" viewBox="0 0 200 20">
+      <g fill="none" stroke="currentColor" stroke-width="1.2">
+        <path d="M0,10 Q10,0 20,10 T40,10 T60,10 T80,10 T100,10 T120,10 T140,10 T160,10 T180,10 T200,10"/>
+        <circle cx="20" cy="10" r="1.5" fill="currentColor"/>
+        <circle cx="60" cy="10" r="1.5" fill="currentColor"/>
+        <circle cx="100" cy="10" r="1.5" fill="currentColor"/>
+        <circle cx="140" cy="10" r="1.5" fill="currentColor"/>
+        <circle cx="180" cy="10" r="1.5" fill="currentColor"/>
+      </g>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- ============== NAVBAR ============== -->
+<header class="nav" id="nav">
+  <div class="container nav-inner">
+    <a href="index.html" class="brand">
+      <img src="logo.png" alt="SMAN 5 Tuban" class="brand-logo" />
+      <div class="brand-text">
+        <strong>SMAN 5 TUBAN</strong>
+        <span>Portal MPLS 2026</span>
+      </div>
+    </a>
+    <nav class="nav-menu" id="navMenu">
+      <a href="#beranda">Beranda</a>
+      <a href="#tentang">Tentang</a>
+      <a href="#alur">Alur</a>
+      <a href="#fitur">Fitur</a>
+      <a href="#gugus">Gugus</a>
+      <a href="#nusantara">Nusantara</a>
+      <a href="#statistik">Statistik</a>
+      <a href="about.html">Sekolah</a>
+      <a href="developer.html">Developer</a>
+      <div class="nav-menu-cta">
+        <a href="login.html" class="btn btn-cap">Login</a>
+        <a href="register.html" class="btn btn-primary">Daftar</a>
+      </div>
+    </nav>
+    <div class="nav-cta">
+      <a href="login.html" class="btn btn-cap">Login</a>
+      <a href="register.html" class="btn btn-primary">Daftar</a>
+      <a href="login.html" class="btn-cap-mini" aria-label="Login Siswa">Masuk</a>
+      <a href="register.html" class="btn-primary-mini" aria-label="Daftar Akun">Daftar</a>
+      <button class="nav-toggle" id="navToggle" aria-label="Buka menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ============== HERO ============== -->
+<section class="hero" id="beranda">
+  <div class="hero-bg" aria-hidden="true">
+    <svg class="hero-motif" width="100%" height="100%"><rect width="100%" height="100%" fill="url(#kawung)" style="color:#C8860A"/></svg>
+    <div class="hero-noise"></div>
+  </div>
+
+  <div class="container hero-inner">
+    <div class="hero-content">
+      <span class="tag reveal">Masa Pengenalan Lingkungan Sekolah · 2026</span>
+      <h1 class="display reveal">Selamat Datang di <span class="grad">SMA Negeri 5 Tuban</span></h1>
+      <p class="lead reveal">Membentuk generasi berkarakter Nusantara — berakar pada budaya, tumbuh dengan ilmu, melangkah ke masa depan. Portal MPLS 2026 menghadirkan jadwal, materi, soal, dan absensi digital dalam satu sentuhan.</p>
+      <div class="hero-actions reveal">
+        <a href="register.html" class="btn btn-primary btn-lg">Daftar Siswa</a>
+        <a href="login.html" class="btn btn-outline btn-lg">Login Siswa</a>
+      </div>
+      <div class="hero-badges reveal">
+        <div class="badge"><strong>400+</strong><span>Siswa Baru</span></div>
+        <div class="badge"><strong>5</strong><span>Gugus Aktif</span></div>
+        <div class="badge"><strong>100%</strong><span>Absensi Digital</span></div>
+      </div>
+    </div>
+  </div>
+
+  <svg class="tumpal-divider tumpal-bottom" aria-hidden="true"><use href="#tumpal"/></svg>
+</section>
+
+<!-- ============== TENTANG ============== -->
+<section class="section" id="tentang">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="kicker">⟢ Tentang MPLS ⟣</span>
+      <h2>Membentuk Karakter, Menumbuhkan Prestasi</h2>
+      <p>MPLS SMAN 5 Tuban dirancang sebagai jembatan adaptasi siswa baru — mengenal lingkungan, budaya sekolah, guru, dan teman gugus dengan cara yang interaktif dan bermakna.</p>
+    </div>
+
+    <div class="grid-3">
+      <article class="card-wayang reveal">
+        <div class="wayang-frame">
+          <div class="card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4"/></svg>
+          </div>
+          <h3>Orientasi Sekolah</h3>
+          <p>Mengenal visi, misi, fasilitas, dan budaya akademik SMA Negeri 5 Tuban.</p>
+        </div>
+      </article>
+      <article class="card-wayang reveal">
+        <div class="wayang-frame">
+          <div class="card-icon gold">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 12l-3-3 3-3M16 12l3-3-3-3M5 9h14M7 18c0-2 2-3 5-3s5 1 5 3"/></svg>
+          </div>
+          <h3>Kerja Sama Gugus</h3>
+          <p>Lima gugus dengan kegiatan kolaboratif, kompetitif, dan penuh sportivitas.</p>
+        </div>
+      </article>
+      <article class="card-wayang reveal">
+        <div class="wayang-frame">
+          <div class="card-icon green">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22V10M12 10C12 6 9 4 5 4c0 5 3 7 7 6zM12 10c0-4 3-6 7-6 0 5-3 7-7 6z"/></svg>
+          </div>
+          <h3>Pembentukan Karakter</h3>
+          <p>Disiplin, integritas, dan kepemimpinan ditanamkan sejak hari pertama.</p>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============== ALUR / TIMELINE ============== -->
+<section class="section section-alt" id="alur">
+  <svg class="section-motif" aria-hidden="true"><rect width="100%" height="100%" fill="url(#truntum)" style="color:#8B2500"/></svg>
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="kicker">⟢ Alur Penggunaan ⟣</span>
+      <h2>Empat Langkah, Semua Siap</h2>
+      <p>Ikuti alur sederhana untuk mulai mengikuti seluruh kegiatan MPLS secara digital.</p>
+    </div>
+    <ol class="timeline">
+      <li class="t-step reveal">
+        <div class="t-num"><span>ꦱ</span><em>01</em></div>
+        <h4>Daftar Akun</h4>
+        <p>Buat akun siswa dengan email & password aktif.</p>
+      </li>
+      <li class="t-step reveal">
+        <div class="t-num"><span>ꦢ</span><em>02</em></div>
+        <h4>Login</h4>
+        <p>Masuk memakai akun yang sudah didaftarkan.</p>
+      </li>
+      <li class="t-step reveal">
+        <div class="t-num"><span>ꦠ</span><em>03</em></div>
+        <h4>Absensi</h4>
+        <p>Verifikasi lokasi GPS atau verifikasi wajah.</p>
+      </li>
+      <li class="t-step reveal">
+        <div class="t-num"><span>ꦏ</span><em>04</em></div>
+        <h4>Akses Portal</h4>
+        <p>Soal, materi, jadwal, & rating OSIS terbuka.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============== FITUR ============== -->
+<section class="section" id="fitur">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="kicker">⟢ Fitur Portal ⟣</span>
+      <h2>Semua Kebutuhan MPLS dalam Satu Portal</h2>
+    </div>
+    <div class="grid-4">
+      <!-- EDIT: tambah/kurangi fitur sesuai kebutuhan -->
+      <div class="feature reveal"><div class="f-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h12l4 4v12H4z"/><path d="M8 12h8M8 16h6"/></svg></div><h4>Soal Online</h4><p>Pilihan ganda & isian.</p></div>
+      <div class="feature reveal"><div class="f-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 5h7v15H3zM14 5h7v15h-7zM10 8c2-1 2-1 4 0M10 12c2-1 2-1 4 0"/></svg></div><h4>Materi MPLS</h4><p>Akses materi kapan saja.</p></div>
+      <div class="feature reveal"><div class="f-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="16" rx="1"/><path d="M3 9h18M8 3v4M16 3v4"/></svg></div><h4>Jadwal Kegiatan</h4><p>Jadwal harian MPLS.</p></div>
+      <div class="feature reveal"><div class="f-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="10" r="3"/><path d="M12 22s7-7 7-12a7 7 0 10-14 0c0 5 7 12 7 12z"/></svg></div><h4>Absensi GPS</h4><p>Radius 300m sekolah.</p></div>
+      <div class="feature reveal"><div class="f-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="4"/><path d="M8 6l2-3h4l2 3"/></svg></div><h4>Verifikasi Wajah</h4><p>Izin & sakit via kamera.</p></div>
+      <div class="feature reveal"><div class="f-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg></div><h4>Rating OSIS</h4><p>Penilaian & masukan.</p></div>
+      <div class="feature reveal"><div class="f-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 20h18M6 16V9M11 16V5M16 16v-7M21 16v-4"/></svg></div><h4>Analisis Absen</h4><p>Grafik per gugus.</p></div>
+      <div class="feature reveal"><div class="f-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l8 4v6c0 5-4 9-8 10-4-1-8-5-8-10V6z"/></svg></div><h4>Role-based</h4><p>OSIS & Siswa terpisah.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== GUGUS ============== -->
+<section class="section section-alt" id="gugus">
+  <svg class="section-motif" aria-hidden="true"><rect width="100%" height="100%" fill="url(#kawung)" style="color:#2D5016"/></svg>
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="kicker">⟢ Sistem Gugus ⟣</span>
+      <h2>Lima Gugus, Satu Semangat</h2>
+      <p>Setiap siswa baru tergabung dalam salah satu gugus untuk mendukung kerja sama tim.</p>
+    </div>
+    <div class="gugus-grid">
+      <!-- EDIT: ganti nama & lambang gugus -->
+      <div class="gugus reveal" style="--g:#8B2500">
+        <svg class="perisai" viewBox="0 0 100 120"><path d="M50 5 L95 25 L95 70 Q95 100 50 115 Q5 100 5 70 L5 25 Z" fill="currentColor" opacity=".12" stroke="currentColor" stroke-width="2"/><text x="50" y="68" text-anchor="middle" font-size="42" font-family="Cinzel" font-weight="700" fill="currentColor">I</text></svg>
+        <strong>(Julukan Gugus)</strong>
+        <small>(Nama Lambang)</small>
+      </div>
+      <div class="gugus reveal" style="--g:#C8860A">
+        <svg class="perisai" viewBox="0 0 100 120"><path d="M50 5 L95 25 L95 70 Q95 100 50 115 Q5 100 5 70 L5 25 Z" fill="currentColor" opacity=".12" stroke="currentColor" stroke-width="2"/><text x="50" y="68" text-anchor="middle" font-size="42" font-family="Cinzel" font-weight="700" fill="currentColor">II</text></svg>
+        <strong>(Julukan Gugus)</strong>
+        <small>(Nama Lambang)</small>
+      </div>
+      <div class="gugus reveal" style="--g:#2D5016">
+        <svg class="perisai" viewBox="0 0 100 120"><path d="M50 5 L95 25 L95 70 Q95 100 50 115 Q5 100 5 70 L5 25 Z" fill="currentColor" opacity=".12" stroke="currentColor" stroke-width="2"/><text x="50" y="68" text-anchor="middle" font-size="38" font-family="Cinzel" font-weight="700" fill="currentColor">III</text></svg>
+        <strong>(Julukan Gugus)</strong>
+        <small>(Nama Lambang)</small>
+      </div>
+      <div class="gugus reveal" style="--g:#6B4423">
+        <svg class="perisai" viewBox="0 0 100 120"><path d="M50 5 L95 25 L95 70 Q95 100 50 115 Q5 100 5 70 L5 25 Z" fill="currentColor" opacity=".12" stroke="currentColor" stroke-width="2"/><text x="50" y="68" text-anchor="middle" font-size="38" font-family="Cinzel" font-weight="700" fill="currentColor">IV</text></svg>
+        <strong>(Julukan Gugus)</strong>
+        <small>(Nama Lambang)</small>
+      </div>
+      <div class="gugus reveal" style="--g:#1F4E5F">
+        <svg class="perisai" viewBox="0 0 100 120"><path d="M50 5 L95 25 L95 70 Q95 100 50 115 Q5 100 5 70 L5 25 Z" fill="currentColor" opacity=".12" stroke="currentColor" stroke-width="2"/><text x="50" y="68" text-anchor="middle" font-size="40" font-family="Cinzel" font-weight="700" fill="currentColor">V</text></svg>
+        <strong>(Julukan Gugus)</strong>
+        <small>(Nama Lambang)</small>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== PESONA NUSANTARA (Bali · Jawa · Indonesia) ============== -->
+<section class="section pesona-nusantara" id="nusantara">
+  <svg class="section-motif" aria-hidden="true"><rect width="100%" height="100%" fill="url(#parang)" style="color:#8B2500"/></svg>
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="kicker">⟢ Pesona Nusantara ⟣</span>
+      <h2>Berakar pada Budaya Indonesia</h2>
+      <p>SMAN 5 Tuban memuliakan kekayaan budaya Nusantara — dari Topeng Bali, Wayang Jawa, sampai lambang Garuda Pancasila — sebagai inspirasi karakter siswa.</p>
+      <div class="nu-strip"></div>
+    </div>
+
+    <div class="nusantara-grid">
+      <article class="nusantara-card reveal">
+        <div class="nu-art"><img src="img-topeng.png" alt="Topeng Barong Bali" loading="lazy" /></div>
+        <h3>Topeng Barong & Leak</h3>
+        <p>Simbol pertarungan kebaikan dan keburukan dari Pulau Dewata — pengingat untuk selalu berpihak pada dharma.</p>
+      </article>
+
+      <article class="nusantara-card reveal featured">
+        <div class="nu-art"><img src="img-garuda.png" alt="Garuda Pancasila" loading="lazy" /></div>
+        <h3>Garuda Pancasila</h3>
+        <p>Lambang negara yang mengikat kita semua. Dasar moral, kebanggaan, dan arah perjuangan generasi muda Indonesia.</p>
+      </article>
+
+      <article class="nusantara-card reveal">
+        <div class="nu-art"><img src="img-wayang.png" alt="Wayang Kulit Jawa" loading="lazy" /></div>
+        <h3>Wayang Kulit Jawa</h3>
+        <p>Seni adiluhung pewarisan nilai. Tokoh-tokohnya mengajarkan keteguhan, kearifan, dan tanggung jawab.</p>
+      </article>
+    </div>
+
+    <div class="nu-quote reveal">
+      <span class="aksara">ꦧꦶꦤ꧀ꦤꦺꦏꦠꦸꦁꦒꦭ꧀ꦆꦏ</span>
+      <p>“Berbeda-beda tetapi tetap satu jua — semangat Bhinneka Tunggal Ika hidup di setiap sudut SMAN 5 Tuban.”</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============== STATISTIK ============== -->
+<section class="section stats-sec" id="statistik">
+  <svg class="section-motif strong" aria-hidden="true"><rect width="100%" height="100%" fill="url(#parang)" style="color:#C8860A"/></svg>
+  <div class="container">
+    <div class="section-head reveal center light">
+      <span class="kicker gold">⟢ Statistik Sekolah ⟣</span>
+      <h2>Angka yang Berbicara</h2>
+    </div>
+    <div class="stats">
+      <!-- EDIT: ubah data-count sesuai angka asli -->
+      <div class="stat reveal"><strong data-count="400">0</strong><span>Siswa Baru</span></div>
+      <div class="stat reveal"><strong data-count="5">0</strong><span>Gugus Aktif</span></div>
+      <div class="stat reveal"><strong data-count="48">0</strong><span>Tenaga Pendidik</span></div>
+      <div class="stat reveal"><strong data-count="16">0</strong><span>Ekstrakurikuler</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== CTA ============== -->
+<section class="cta-sec">
+  <svg class="tumpal-divider tumpal-top light" aria-hidden="true"><use href="#tumpal"/></svg>
+  <div class="container">
+    <div class="cta-inner reveal">
+      <span class="kicker light">⟢ Siap Bergabung? ⟣</span>
+      <h2>Mulai Perjalanan MPLS-mu Hari Ini</h2>
+      <p>Daftar sekarang dan nikmati seluruh fitur MPLS resmi SMAN 5 Tuban.</p>
+      <div class="cta-actions">
+        <a href="register.html" class="btn btn-gold btn-lg">Daftar Siswa</a>
+        <a href="login.html" class="btn btn-outline-light btn-lg">Login</a>
+      </div>
+    </div>
+  </div>
+  <svg class="tumpal-divider tumpal-bottom light flip" aria-hidden="true"><use href="#tumpal"/></svg>
+</section>
+
+<!-- ============== FOOTER ============== -->
+<footer class="footer">
+  <svg class="ukiran-border" aria-hidden="true"><use href="#ukiran"/></svg>
+  <div class="container footer-inner">
+    <div class="f-col">
+      <div class="brand">
+        <img src="logo.png" alt="SMAN 5 Tuban" class="brand-logo" />
+        <div class="brand-text"><strong>SMAN 5 TUBAN</strong><span>MPLS 2026</span></div>
+      </div>
+      <p class="muted">Jl. Bekti Harjo, Tuban, Jawa Timur.<br/>Sekolah berkarakter, berprestasi, berbudaya Nusantara.</p>
+    </div>
+    <div class="f-col">
+      <h5>Navigasi</h5>
+      <a href="#beranda">Beranda</a>
+      <a href="#tentang">Tentang</a>
+      <a href="#fitur">Fitur</a>
+      <a href="about.html">Sekolah</a>
+    </div>
+    <div class="f-col">
+      <h5>Akun</h5>
+      <a href="register.html">Daftar Siswa</a>
+      <a href="login.html">Login Siswa</a>
+      <a href="developer.html">Developer</a>
+    </div>
+    <div class="f-col">
+      <h5>Ikuti Kami</h5>
+      <div class="socials">
+        <a href="https://www.instagram.com/sman5tuban?igsh=MTJiY3ZqaW5rM3ZlZg==" aria-label="Instagram"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg></a>
+        <a href="https://youtube.com/@sman5tuban979?si=VHBuneJdrgLgwKw8" aria-label="YouTube"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M10 9l5 3-5 3z" fill="currentColor"/></svg></a>
+        <a href="https://www.facebook.com/SMANEGERILIMATUBAN" aria-label="Facebook"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 8h2V5h-2c-2 0-3 1-3 3v2H9v3h2v8h3v-8h2.5L17 10h-3V8.5c0-.3.2-.5.5-.5z"/></svg></a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bot">
+    <div class="container">© <span id="year">2026</span> SMA Negeri 5 Tuban · Lasoma OSIS SMA Negri 5 Tuban</div>
+  </div>
+</footer>
+
+<script src="main.js" defer></script>
+</body>
+</html>

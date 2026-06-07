@@ -1,0 +1,221 @@
+/* ============================================================
+   DESKTOP FIX v2 — Admin & Student Dashboard
+   Fixes broken layout caused by `.main{margin-left:260px}` in
+   polish-v2.css, which conflicted with the CSS grid `.app` and
+   pushed `.main` off the viewport (causing the squished welcome
+   card + blank middle area in admin & student dashboards).
+
+   Loaded LAST so it wins. Wrapped in min-width:1025px so it
+   does NOT affect mobile / tablet layout.
+   ============================================================ */
+@media (min-width: 1025px){
+
+  /* ---- App shell: proper 2-col grid, no margin hacks ---- */
+  .app{
+    display: grid !important;
+    grid-template-columns: 272px minmax(0, 1fr) !important;
+    min-height: 100vh;
+    background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(200,134,10,.05), transparent 60%),
+      var(--bg-soft, #faf6ef);
+  }
+
+  /* THE FIX: kill the broken margin-left from polish-v2.css.
+     With grid, `.main` is already in column 2 — margin pushes
+     it past the viewport edge. */
+  .app .main{
+    margin-left: 0 !important;
+    width: auto !important;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ---- SIDEBAR ----
+     FIX: grid item with sticky needs align-self:start, otherwise grid
+     stretches the item to full row height (= page height) and "sticky"
+     has no scroll range — making the sidebar scroll away with content.
+     Also force position:sticky to win over polish-v2.css's position:fixed
+     so the sidebar stays pinned in its grid column. */
+  .sidebar{
+    width: auto !important;
+    position: sticky !important;
+    top: 0 !important;
+    left: auto !important;
+    align-self: start !important;
+    height: 100vh !important;
+    max-height: 100vh;
+    overflow-y: auto;
+    transform: none !important;
+    box-shadow: 1px 0 0 rgba(0,0,0,.04), 18px 0 40px -28px rgba(44,26,0,.35);
+  }
+  .sidebar.admin{
+    background: linear-gradient(180deg, #1c1004 0%, #140a00 100%);
+    border-right: 1px solid rgba(200,134,10,.22);
+  }
+
+  .sidebar .sb-head{
+    padding: 1.1rem 1rem 1rem;
+    gap: .7rem;
+    align-items: center;
+    border-bottom: 1px solid rgba(200,134,10,.18);
+    background: linear-gradient(180deg, rgba(200,134,10,.06), transparent);
+  }
+  .sidebar .sb-head .brand-logo{
+    width: 42px !important; height: 42px !important;
+    flex: 0 0 42px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,.35));
+  }
+  .sidebar .sb-head .brand-text strong{
+    font-size: .92rem; letter-spacing: .08em; line-height: 1.1;
+  }
+  .sidebar .sb-head .brand-text span{
+    font-size: .68rem; opacity: .8;
+  }
+
+  .sidebar .sb-section{
+    padding: 1rem 1rem .35rem;
+    font-size: .62rem; letter-spacing: .18em;
+    opacity: .85;
+  }
+  .sidebar.admin .sb-section{ color: rgba(232,196,120,.55); }
+
+  .sidebar .sb-nav{ padding: 0 .6rem; gap: 3px; display: flex; flex-direction: column; }
+  .sidebar .sb-link{
+    padding: .58rem .8rem;
+    border-radius: 10px;
+    font-size: .9rem;
+    display: flex; align-items: center; gap: .65rem;
+    transition: background .18s ease, color .18s ease, transform .18s ease;
+  }
+  .sidebar .sb-link:hover{ transform: translateX(2px); }
+  .sidebar.admin .sb-link.active{
+    background: linear-gradient(90deg, rgba(200,134,10,.28), rgba(200,134,10,.06));
+    color: #FDF6E3;
+    border-left: 3px solid var(--secondary, #c8860a);
+    padding-left: calc(.8rem - 3px);
+    box-shadow: inset 0 0 0 1px rgba(200,134,10,.15);
+  }
+
+  /* ---- SIDEBAR FOOT: profile avatar fix ---- */
+  .sidebar .sb-foot{
+    margin-top: auto;
+    padding: 1rem .85rem 1.1rem;
+    border-top: 1px solid rgba(200,134,10,.18);
+  }
+  .sidebar.admin .sb-foot{
+    background: linear-gradient(180deg, transparent, rgba(0,0,0,.35));
+  }
+  .sidebar .sb-user{
+    display: flex !important;
+    align-items: center;
+    gap: .7rem;
+    padding: .5rem .55rem;
+    border-radius: 12px;
+    background: rgba(255,255,255,.02);
+    border: 1px solid rgba(200,134,10,.12);
+    width: 100%;
+    min-width: 0;
+  }
+  .sidebar:not(.admin) .sb-user{
+    background: rgba(0,0,0,.02);
+    border-color: var(--line, #ecdfc7);
+  }
+  .sidebar .sb-user .av{
+    flex: 0 0 42px !important;
+    width: 42px !important; height: 42px !important;
+    min-width: 42px !important; max-width: 42px !important;
+    aspect-ratio: 1 / 1 !important;
+    border-radius: 50% !important;
+    display: grid !important;
+    place-items: center !important;
+    font-size: .95rem !important;
+    font-weight: 700; line-height: 1; padding: 0;
+    box-shadow: 0 4px 12px rgba(200,134,10,.28), inset 0 0 0 2px rgba(255,255,255,.18);
+  }
+  .sidebar.admin .sb-user .av{
+    background: linear-gradient(135deg, #f0c060, #c8860a 60%, #8a5c00);
+    color: #1A0F00;
+  }
+  .sidebar .sb-user > div:last-child{
+    display: flex; flex-direction: column;
+    min-width: 0; flex: 1 1 auto; line-height: 1.15;
+  }
+  .sidebar .sb-user strong,
+  .sidebar .sb-user span{
+    display: block; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+  }
+  .sidebar .sb-user strong{ font-size: .92rem; }
+  .sidebar .sb-user span{ font-size: .72rem; opacity: .75; margin-top: 2px; }
+
+  .sidebar .sb-foot .btn-block{
+    margin-top: .75rem;
+    border-radius: 10px;
+    font-size: .82rem;
+  }
+  .sidebar.admin .sb-foot .btn-ghost{
+    background: rgba(253,246,227,.04);
+    border: 1px solid rgba(200,134,10,.2);
+    color: rgba(253,246,227,.8);
+  }
+  .sidebar.admin .sb-foot .btn-ghost:hover{
+    background: rgba(200,134,10,.14);
+    border-color: rgba(200,134,10,.45);
+    color: #FDF6E3;
+  }
+
+  /* ---- TOPBAR / CONTENT ---- */
+  .topbar{
+    padding: 1rem 1.5rem;
+    backdrop-filter: blur(8px);
+  }
+  .topbar h1{ font-size: 1.4rem; letter-spacing: .01em; }
+
+  .content{
+    padding: 1.5rem 1.75rem 2.5rem;
+    max-width: 100%;
+  }
+
+  /* dashboard cards subtle lift */
+  .content .stat,
+  .content .card,
+  .content .panel{
+    border-radius: 14px;
+    transition: transform .2s ease, box-shadow .2s ease;
+  }
+  .content .stat:hover,
+  .content .card:hover{
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px -18px rgba(44,26,0,.35);
+  }
+
+  /* welcome / hero banner – ensure it spans content width */
+  .content .welcome,
+  .content .hero-card,
+  .content .panel-hero{
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* stats grid: prevent squishing into a single narrow column */
+  .content .stats,
+  .content .stat-grid,
+  .content .grid-stats{
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 1rem;
+  }
+
+  /* hide mobile-only bottom nav on desktop */
+  .mobile-bottom-nav,
+  .mbn-backdrop,
+  .mbn-sheet{ display: none !important; }
+
+  /* keep decorative bg subtle */
+  .nu-garuda-bg{ opacity: .035 !important; pointer-events: none; }
+}

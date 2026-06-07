@@ -1,0 +1,141 @@
+/* ============================================================
+   FIXES v6.1 — Single sidebar scroll container.
+
+   Previous versions caused TWO scrollbars to appear side by side
+   in the sidebar (one per .sb-nav group). We now wrap all middle
+   sidebar items inside a single .sb-body container and make ONLY
+   that container scroll. .sb-head and .sb-foot stay pinned.
+
+   Loaded LAST so it wins.
+   ============================================================ */
+
+@media (min-width: 1025px){
+
+  /* App is viewport-sized; page itself does not scroll. */
+  .app{
+    height: 100vh !important;
+    min-height: 100vh !important;
+    max-height: 100vh !important;
+    overflow: hidden !important;
+  }
+
+  /* Sidebar fills the grid row, no internal scroll on the wrapper. */
+  .sidebar{
+    position: relative !important;
+    top: auto !important; left: auto !important;
+    bottom: auto !important;
+    width: auto !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    overscroll-behavior: contain !important;
+  }
+  .sidebar .sb-head{ flex: 0 0 auto; }
+
+  /* Single scroll region for the entire middle of the sidebar. */
+  .sidebar .sb-body{
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    display: flex;
+    flex-direction: column;
+  }
+  /* Children inside sb-body must NOT scroll on their own. */
+  .sidebar .sb-body > .sb-section,
+  .sidebar .sb-body > .sb-nav{
+    flex: 0 0 auto;
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
+  }
+
+  .sidebar .sb-foot{
+    flex: 0 0 auto;
+    margin-top: 0;
+  }
+
+  /* Thin scrollbar on sb-body only. */
+  .sidebar .sb-body{ scrollbar-width: thin; scrollbar-color: rgba(200,134,10,.35) transparent; }
+  .sidebar .sb-body::-webkit-scrollbar{ width: 6px; }
+  .sidebar .sb-body::-webkit-scrollbar-track{ background: transparent; }
+  .sidebar .sb-body::-webkit-scrollbar-thumb{ background: rgba(200,134,10,.3); border-radius: 999px; }
+  .sidebar:not(.admin) .sb-body::-webkit-scrollbar-thumb{ background: rgba(139,37,0,.25); }
+
+  /* Main pane is the only other scroll container */
+  .app .main{
+    height: 100vh !important;
+    max-height: 100vh !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    overscroll-behavior: contain;
+    min-width: 0;
+  }
+
+  /* Topbar sticks to the top of .main */
+  .app .main .topbar{
+    position: sticky;
+    top: 0;
+    z-index: 40;
+  }
+}
+
+/* Mobile: if sb-body exists, let it scroll naturally inside the off-canvas sidebar. */
+@media (max-width: 1024px){
+  .sidebar .sb-body{
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    display: flex;
+    flex-direction: column;
+  }
+  .sidebar{ display: flex; flex-direction: column; }
+  .sidebar .sb-head, .sidebar .sb-foot{ flex: 0 0 auto; }
+}
+
+/* Layout polish */
+.app .content{ min-width: 0; }
+.app .content > *{ max-width: 100%; }
+.card canvas{ max-width: 100% !important; height: auto !important; }
+.card .csv-grid,
+.card[data-csv] .grid{ gap: .75rem; }
+
+/* Tables never overflow the content area */
+.table-wrap, .tbl-wrap{ max-width: 100%; overflow-x: auto; }
+
+.sidebar:not(.admin) .sb-link.active{
+  background: rgba(200,134,10,.12);
+  color: #6b4a00;
+  border-left: 3px solid #c8860a;
+  padding-left: calc(.8rem - 3px);
+}
+
+/* ========================================================
+   Exam mode — saat siswa sedang mengerjakan soal:
+   sembunyikan SELURUH menu bawah mobile + tombol notif
+   supaya siswa tidak bisa pindah halaman sembarangan.
+   ======================================================== */
+body.exam-mode .mobile-bottom-nav,
+body.exam-mode .mbn-sheet,
+body.exam-mode .mbn-backdrop{
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+body.exam-mode .sb-link[data-page="notif"],
+body.exam-mode .mbn-sheet-item[data-page="notif"],
+body.exam-mode .mobile-bottom-nav [data-page="notif"],
+body.exam-mode .topbar-notif,
+body.exam-mode .notif-bell,
+body.exam-mode [data-role="notif-bell"]{
+  display: none !important;
+}
+/* Hilangkan padding bawah yg disisakan untuk bottom nav */
+body.exam-mode{
+  padding-bottom: 0 !important;
+}

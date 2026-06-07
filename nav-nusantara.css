@@ -1,0 +1,104 @@
+/* ===================================================================
+   nav-nusantara.css  —  v3 "Clean Nusantara"
+   Navbar bersih, minimalis, sentuhan Indonesia yang halus saja:
+   garis emas tipis di atas & bawah, tipografi rapi, tanpa motif 3D,
+   tanpa animasi berlebihan, tanpa efek medali / batik penuh.
+   =================================================================== */
+
+:root{
+  --nus-gold:        #B8860B;
+  --nus-gold-soft:   #D4A84B;
+  --nus-merah:       #8B2500;
+  --nus-cream:       #FBF5E7;
+  --nus-cream-2:     #F2E7CB;
+  --nus-ink:         #2c1a00;
+}
+
+/* ---------- Garis emas tipis di paling atas (subtle accent) ---------- */
+.nav{
+  position: relative;
+  border-top: 2px solid var(--nus-gold);
+}
+
+/* ---------- MOBILE — bar cream bersih ---------- */
+@media (max-width: 1023px){
+
+  .nav{
+    position: fixed;
+    background: linear-gradient(180deg,
+      rgba(251,245,231,.96) 0%,
+      rgba(244,231,203,.96) 100%) !important;
+    backdrop-filter: blur(12px) saturate(140%);
+    -webkit-backdrop-filter: blur(12px) saturate(140%);
+    border-bottom: 1px solid rgba(184,134,11,.25) !important;
+    box-shadow: 0 1px 0 rgba(184,134,11,.15);
+  }
+
+  /* hapus semua dekorasi 3D dari versi sebelumnya */
+  .nav::before,
+  .nav::after,
+  .brand::before,
+  .brand-logo::after{
+    content: none !important;
+    display: none !important;
+    background: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Logo: lingkaran tipis dengan border emas halus */
+  .brand-logo{
+    position: relative;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 0 1px rgba(184,134,11,.35);
+    padding: 1px;
+  }
+
+  /* Teks brand: warna solid merah-coklat, rapi, tanpa text-shadow */
+  .brand-text strong{
+    color: var(--nus-merah) !important;
+    background: none !important;
+    -webkit-text-fill-color: currentColor !important;
+    text-shadow: none !important;
+    letter-spacing: .04em !important;
+    font-weight: 700 !important;
+  }
+  .brand-text span{
+    display: block !important;
+    color: var(--nus-gold) !important;
+    letter-spacing: .14em !important;
+    font-size: .58rem !important;
+    text-transform: uppercase;
+    text-shadow: none !important;
+  }
+  .brand-text span::after{ content: none !important; }
+
+  /* Tombol hamburger: rapi, flat, sentuhan emas tipis */
+  .nav-toggle{
+    background: rgba(255,255,255,.7) !important;
+    border: 1px solid rgba(184,134,11,.45) !important;
+    box-shadow: none !important;
+    border-radius: 10px !important;
+    color: var(--nus-merah) !important;
+  }
+  .nav-toggle:hover,
+  .nav-toggle:active{
+    background: rgba(255,255,255,.95) !important;
+    border-color: var(--nus-gold) !important;
+  }
+}
+
+/* ---------- DESKTOP — garis emas halus saja, tanpa dekorasi ekstra ---------- */
+@media (min-width: 1024px){
+  .nav::before,
+  .nav::after{
+    content: none !important;
+    display: none !important;
+  }
+}
+
+/* Tambahan tinggi navbar mobile (untuk padding body) — kecil saja */
+@media (max-width: 1023px){
+  body{ --nav-extra: 0px; }
+}

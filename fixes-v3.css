@@ -1,0 +1,329 @@
+/* ============================================================
+   PORTAL MPLS — FIXES v3
+   Perbaikan tampilan mobile & desktop:
+   - Landing navbar mobile: hamburger + Login/Daftar tetap tampil
+   - Fullscreen overlay menu dengan fade
+   - Auth pages (login, register, admin-login): konsisten & rapi
+   - Dashboard siswa & admin: spacing & responsive polish
+   Load TERAKHIR setelah semua CSS lain.
+   ============================================================ */
+
+/* ============ Variabel bantu ============ */
+:root{
+  --fx-shadow-soft: 0 6px 24px rgba(44,26,0,.08);
+  --fx-shadow-md:   0 10px 32px rgba(44,26,0,.12);
+}
+
+/* =====================================================================
+   1) LANDING NAVBAR — Mobile yang lebih kaya & fullscreen menu
+   ===================================================================== */
+
+/* Mobile-only compact auth buttons di navbar (selalu tampil) */
+.nav-cta .btn-cap-mini,
+.nav-cta .btn-primary-mini{display:none}
+
+@media (max-width: 1023px){
+  /* Susunan kanan: [Login] [Daftar] [Hamburger] */
+  .nav-cta{gap:.45rem !important}
+  .nav-cta .btn-cap, .nav-cta .btn-primary{display:none !important}
+  .nav-cta .btn-cap-mini,
+  .nav-cta .btn-primary-mini{
+    display:inline-flex !important;
+    align-items:center;justify-content:center;
+    height:38px;padding:0 .85rem;
+    border-radius:999px;font-size:.78rem;font-weight:700;
+    letter-spacing:.02em;line-height:1;
+    transition:transform .2s ease, box-shadow .2s ease;
+  }
+  .nav-cta .btn-cap-mini{
+    color:var(--primary,#8B2500);
+    background:rgba(139,37,0,.08);
+    border:1px solid rgba(139,37,0,.25);
+  }
+  .nav-cta .btn-primary-mini{
+    color:#fff;
+    background:linear-gradient(135deg,var(--primary,#8B2500),#B03000);
+    border:1px solid transparent;
+    box-shadow:0 4px 14px rgba(139,37,0,.25);
+  }
+  .nav-cta .btn-cap-mini:active,
+  .nav-cta .btn-primary-mini:active{transform:scale(.96)}
+
+  /* Hamburger button: square, ikut tema */
+  .nav-toggle{
+    width:44px !important;height:44px !important;
+    border-radius:12px !important;
+    display:inline-flex !important;align-items:center;justify-content:center;
+    flex-direction:column;gap:5px;
+    background:rgba(139,37,0,.08) !important;
+    border:1px solid rgba(139,37,0,.25) !important;
+  }
+  .nav-toggle span{
+    display:block;width:18px;height:2px;border-radius:2px;
+    background:var(--primary,#8B2500) !important;
+    transition:transform .25s ease, opacity .2s ease;
+  }
+  .nav-toggle[aria-expanded="true"] span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+  .nav-toggle[aria-expanded="true"] span:nth-child(2){opacity:0}
+  .nav-toggle[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+}
+
+/* =================== Fullscreen overlay menu =================== */
+@media (max-width: 1023px){
+  .nav-menu{
+    position:fixed !important;
+    inset:0 !important;
+    width:100% !important;height:100vh !important;height:100dvh !important;
+    background:
+      radial-gradient(1200px 600px at 50% -20%, rgba(200,134,10,.18), transparent 60%),
+      linear-gradient(180deg, #FDF6E3 0%, #F2E4BF 100%) !important;
+    flex-direction:column !important;
+    align-items:stretch !important;justify-content:flex-start !important;
+    padding:5.5rem 1.5rem 2rem !important;
+    gap:.25rem !important;
+    transform:none !important;
+    opacity:0;visibility:hidden;
+    transition:opacity .25s ease, visibility .25s ease !important;
+    z-index:140 !important;
+    overflow-y:auto;
+    border:none !important;box-shadow:none !important;
+  }
+  .nav-menu.open{opacity:1;visibility:visible}
+  .nav-menu > a{
+    font-family:var(--font-display, "Playfair Display", serif);
+    font-size:1.25rem !important;font-weight:600;
+    padding:.95rem .25rem !important;
+    border-bottom:1px solid rgba(139,37,0,.12) !important;
+    color:#2c1a00;
+    transform:translateY(8px);opacity:0;
+    transition:transform .35s ease, opacity .35s ease, color .15s ease, background .15s ease;
+  }
+  .nav-menu.open > a{transform:translateY(0);opacity:1}
+  .nav-menu.open > a:nth-child(1){transition-delay:.05s}
+  .nav-menu.open > a:nth-child(2){transition-delay:.10s}
+  .nav-menu.open > a:nth-child(3){transition-delay:.15s}
+  .nav-menu.open > a:nth-child(4){transition-delay:.20s}
+  .nav-menu.open > a:nth-child(5){transition-delay:.25s}
+  .nav-menu.open > a:nth-child(6){transition-delay:.30s}
+  .nav-menu.open > a:nth-child(7){transition-delay:.35s}
+  .nav-menu.open > a:nth-child(8){transition-delay:.40s}
+  .nav-menu.open > a:nth-child(9){transition-delay:.45s}
+  .nav-menu > a:hover{color:var(--primary,#8B2500);padding-left:.6rem !important}
+
+  .nav-menu-cta{
+    display:flex !important;flex-direction:column;gap:.65rem;
+    width:100%;margin-top:1.25rem !important;padding-top:1.25rem;
+    border-top:2px dashed rgba(139,37,0,.25);
+    opacity:0;transform:translateY(8px);
+    transition:opacity .4s ease .45s, transform .4s ease .45s;
+  }
+  .nav-menu.open .nav-menu-cta{opacity:1;transform:translateY(0)}
+  .nav-menu-cta .btn{width:100%;min-height:50px;justify-content:center;font-size:1rem}
+
+  body:has(.nav-menu.open){overflow:hidden}
+}
+
+/* Logo & nama tetap rapi di mobile */
+@media (max-width: 480px){
+  .nav-inner{padding:.65rem .9rem !important}
+  .brand-logo{width:36px !important;height:36px !important}
+  .brand-text strong{font-size:.78rem !important;line-height:1.05}
+  .brand-text span{font-size:.62rem !important}
+  .nav-cta .btn-cap-mini{padding:0 .65rem;font-size:.72rem;height:34px}
+  .nav-cta .btn-primary-mini{padding:0 .75rem;font-size:.72rem;height:34px}
+  .nav-toggle{width:40px !important;height:40px !important}
+}
+
+/* =====================================================================
+   2) AUTH PAGES — Login / Register / Admin-Login
+   ===================================================================== */
+
+/* Pastikan side panel tidak terlalu boros ruang di mobile, tetap "punya isi" */
+@media (max-width: 860px){
+  .auth-wrap{min-height:100vh}
+  .auth-side{
+    min-height:auto !important;
+    padding:1rem 1.25rem 1.1rem !important;
+    display:flex !important;
+    flex-direction:row !important;
+    align-items:center !important;
+    gap:.85rem !important;
+    flex-wrap:wrap;
+  }
+  .auth-side .auth-back{
+    order:-1;
+    flex:0 0 100%;
+    margin:0 0 .35rem 0 !important;
+    font-size:.78rem !important;
+    color:rgba(253,246,227,.7) !important;
+  }
+  .auth-side .brand{margin:0 !important;flex:1 1 auto;min-width:0}
+  .auth-side .brand a{gap:.6rem !important}
+  .auth-side .brand-logo{width:40px !important;height:40px !important}
+  .auth-side .brand-text strong{font-size:.85rem;line-height:1.1}
+  .auth-side .brand-text span{font-size:.7rem;opacity:.75}
+  .auth-side .copyright{display:none !important}
+
+  .auth-form-wrap{padding:1rem !important;align-items:flex-start !important}
+  .auth-form{
+    margin:.5rem auto !important;
+    box-shadow:var(--fx-shadow-md) !important;
+  }
+  .auth-form-header{margin-bottom:1.1rem !important}
+}
+
+/* Register: bagian atas (header form) lebih rapi & compact */
+@media (max-width: 860px){
+  #formReg.auth-form{padding:1.25rem 1.1rem !important}
+  #formReg .auth-form-header{margin-bottom:1rem !important}
+  #formReg .auth-form-header .auth-icon{width:48px !important;height:48px !important;font-size:1.05rem !important;margin-bottom:.5rem !important}
+  #formReg .auth-form-header h1{font-size:1.15rem !important;margin-bottom:.15rem !important}
+  #formReg .auth-form-header .sub{font-size:.78rem !important}
+  #formReg .auth-field{margin-bottom:.7rem !important}
+  #formReg .auth-row{gap:.6rem}
+}
+
+/* Register desktop: top-area lebih ringkas */
+@media (min-width: 861px){
+  #formReg.auth-form{padding:2rem 2.25rem !important;max-width:560px !important}
+  #formReg .auth-form-header{margin-bottom:1.4rem !important}
+  #formReg .auth-form-header .auth-icon{width:58px;height:58px;margin-bottom:.6rem}
+  #formReg .auth-form-header h1{font-size:1.5rem;margin-bottom:.2rem}
+}
+
+/* ===== Admin Login — pakai class auth-form modern ===== */
+.admin-auth .auth-side{
+  background:linear-gradient(160deg,#0B0700 0%,#1A0F00 50%,#2C1A00 100%) !important;
+}
+.admin-auth .auth-form-header .auth-icon{
+  background:linear-gradient(135deg,#C8860A,#8B5E00) !important;
+  box-shadow:0 8px 24px rgba(200,134,10,.3) !important;
+}
+
+/* Backward-compat untuk page admin-login lama yang masih pakai .field/.ctrl */
+.auth-form .field{margin-bottom:1rem}
+.auth-form .field label{
+  display:block;font-family:var(--font-accent,"Cinzel",serif);
+  font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-2,#5a3a16);margin-bottom:.4rem;
+}
+.auth-form .field .ctrl{position:relative;display:flex;align-items:center}
+.auth-form .field .ctrl i{position:absolute;left:14px;color:var(--muted,#7a5c3a);font-size:.9rem;pointer-events:none}
+.auth-form .field .ctrl input{
+  width:100%;padding:.85rem 1rem .85rem 2.75rem;
+  border:2px solid var(--line,#e7d9ba);
+  border-radius:var(--radius-sm,8px);
+  background:var(--bg,#FDF6E3);
+  font-family:var(--font-sans);font-size:.95rem;color:var(--ink);
+  transition:border-color .2s, box-shadow .2s;
+}
+.auth-form .field .ctrl input:focus{
+  outline:none;border-color:var(--secondary,#C8860A);
+  box-shadow:0 0 0 4px rgba(200,134,10,.12);
+}
+.auth-form .auth-foot{text-align:center;margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid var(--line-2,#f0e4c8)}
+.auth-form .auth-foot a{color:var(--primary,#8B2500);font-weight:600;display:inline-flex;align-items:center;gap:.4rem}
+
+/* =====================================================================
+   3) DASHBOARD SISWA & ADMIN — polish
+   ===================================================================== */
+
+/* Topbar: layout konsisten + spacing nyaman */
+.app .topbar{
+  padding:.85rem 1.5rem !important;
+  min-height:60px;
+  align-items:center;
+  gap:.85rem !important;
+}
+.app .topbar h1{
+  font-size:1.25rem !important;
+  font-weight:700;
+  letter-spacing:-.01em;
+  margin:0;
+  white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;
+}
+.app .topbar .top-actions{margin-left:auto;flex-shrink:0}
+.app .icon-btn{
+  width:40px;height:40px;border-radius:10px;
+  display:inline-flex;align-items:center;justify-content:center;
+}
+
+/* Content area: padding konsisten */
+.app .content{padding:1.25rem 1.5rem 2rem !important}
+
+/* Sidebar: scrollbar lebih halus & spacing rapi */
+.sidebar{scrollbar-width:thin}
+.sidebar::-webkit-scrollbar{width:6px}
+.sidebar::-webkit-scrollbar-thumb{background:rgba(139,37,0,.2);border-radius:3px}
+.sidebar.admin::-webkit-scrollbar-thumb{background:rgba(200,134,10,.25)}
+
+.sb-head{padding:1.1rem 1rem !important;gap:.7rem !important}
+.sb-section{
+  padding:.85rem 1rem .4rem !important;
+  font-size:.65rem !important;
+  letter-spacing:.14em;font-weight:700;
+  opacity:.7;
+}
+.sb-nav{padding:0 .65rem !important;display:flex;flex-direction:column;gap:2px}
+.sb-link{cursor:pointer}
+.sb-foot{padding:1rem !important;margin-top:auto}
+
+/* ========= Mobile dashboard ========= */
+@media (max-width: 860px){
+  .app .topbar{padding:.7rem .9rem !important;min-height:56px}
+  .app .topbar h1{font-size:1.05rem !important}
+  .app .content{padding:.9rem !important}
+
+  /* Sidebar full-height drawer dari kiri */
+  .sidebar{
+    position:fixed !important;
+    top:0;left:0;bottom:0;
+    width:min(86%, 300px) !important;
+    height:100vh;height:100dvh;
+    z-index:90;
+    background:var(--white,#fff);
+    transform:translateX(-100%);
+    transition:transform .3s ease;
+  }
+  .sidebar.admin{background:var(--bg-dark,#1A0F00)}
+  .sidebar.open{transform:translateX(0) !important;box-shadow:16px 0 40px rgba(44,26,0,.25)}
+
+  .sb-toggle{
+    display:inline-flex !important;align-items:center;justify-content:center;
+    width:40px;height:40px;border-radius:10px;
+    background:rgba(139,37,0,.08);border:1px solid rgba(139,37,0,.2);
+    color:var(--primary,#8B2500);
+  }
+  .sidebar.admin + .main .sb-toggle{
+    background:rgba(200,134,10,.12);border-color:rgba(200,134,10,.3);color:#C8860A;
+  }
+
+  .sidebar-backdrop{
+    position:fixed;inset:0;background:rgba(26,15,0,.55);
+    z-index:85;opacity:0;pointer-events:none;
+    transition:opacity .25s ease;
+  }
+  .sidebar-backdrop.show{opacity:1;pointer-events:auto}
+}
+
+@media (max-width: 480px){
+  .app .topbar{padding:.6rem .75rem !important}
+  .app .topbar h1{font-size:1rem !important}
+  .app .content{padding:.75rem !important}
+  .sb-head{padding:.95rem .85rem !important}
+  .sb-link{padding:.7rem .8rem !important;font-size:.9rem !important;border-radius:8px !important}
+}
+
+/* Cegah double scrollbar saat drawer terbuka di mobile */
+@media (max-width: 860px){
+  body:has(.sidebar.open){overflow:hidden}
+}
+
+/* =====================================================================
+   4) Misc safety — touch targets & focus
+   ===================================================================== */
+@media (hover:none){
+  .nav-menu > a, .sb-link, .btn{min-height:42px}
+}
+:focus-visible{outline:2px solid var(--secondary,#C8860A);outline-offset:2px;border-radius:6px}

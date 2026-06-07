@@ -1,0 +1,77 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() { return request.auth != null; }
+    function userDoc() { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data; }
+    function isAdmin() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && userDoc().role == 'admin';
+    }
+    function isStudent() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && userDoc().role == 'student';
+    }
+    function isOwner(uid) { return isSignedIn() && request.auth.uid == uid; }
+
+    // Users / profiles
+    match /users/{uid} {
+      allow get:  if isOwner(uid) || isAdmin();
+      allow list: if isAdmin();
+      allow create: if isOwner(uid) && request.resource.data.role == 'student';
+      allow update: if (isOwner(uid) && !('role' in request.resource.data.diff(resource.data).affectedKeys()))
+                    || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Questions
+    match /questions/{id} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // Materials, schedule, activities, notifications
+    match /materials/{id}     { allow read: if isSignedIn(); allow write: if isAdmin(); }
+    match /schedule/{id}      { allow read: if isSignedIn(); allow write: if isAdmin(); }
+    match /activities/{id}    { allow read: if isSignedIn(); allow write: if isAdmin(); }
+    match /notifications/{id} { allow read: if isSignedIn(); allow write: if isAdmin(); }
+
+    // Answers
+    match /answers/{id} {
+      allow create: if isStudent() && request.resource.data.userId == request.auth.uid;
+      allow get:    if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow list:   if isAdmin() || isSignedIn();
+      allow update, delete: if isAdmin();
+    }
+
+    // Ratings
+    match /ratings/{id} {
+      allow create: if isStudent() && request.resource.data.userId == request.auth.uid;
+      allow get:    if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow list:   if isAdmin() || isSignedIn();
+      allow delete: if isAdmin();
+    }
+
+    // Attendance
+    match /attendance/{id} {
+      allow create: if isStudent() && request.resource.data.userId == request.auth.uid;
+      allow get:    if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow list:   if isAdmin() || isSignedIn();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Groups
+    match /groups/{id} { allow read: if isSignedIn(); allow write: if isAdmin(); }
+
+    // Audit Logs
+    match /auditLogs/{id} {
+      allow create: if isStudent() && request.resource.data.userId == request.auth.uid;
+      allow get:    if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow list:   if isAdmin() || isSignedIn();
+      allow update, delete: if isAdmin();
+    }
+  }
+}

@@ -1,0 +1,55 @@
+/* SMOOTH SCROLL */
+html { scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
+
+/* SUBTLE ANIMATED BACKGROUND */
+.fx-bg {
+  position: fixed; inset: 0; z-index: -10; pointer-events: none; overflow: hidden;
+  background: #FDF6E3;
+}
+.fx-bg .orb, .fx-bg .orb2 {
+  position: absolute; border-radius: 50%;
+  filter: blur(110px); will-change: transform;
+}
+.fx-bg .orb { width: 50vmax; height: 50vmax; opacity: .25;
+  background: radial-gradient(circle, rgba(139,37,0,.40) 0%, rgba(139,37,0,0) 70%);
+  top: -12vmax; left: -8vmax;
+  animation: fxFloatA 32s ease-in-out infinite alternate;
+}
+.fx-bg .orb2 { width: 50vmax; height: 50vmax; opacity: .22;
+  background: radial-gradient(circle, rgba(200,134,10,.38) 0%, rgba(200,134,10,0) 70%);
+  bottom: -15vmax; right: -10vmax;
+  animation: fxFloatB 36s ease-in-out infinite alternate;
+}
+.fx-bg .aurora {
+  position: absolute; inset: -10%;
+  background: conic-gradient(from 0deg at 50% 50%,
+    rgba(139,37,0,.10), rgba(200,134,10,.08), rgba(45,80,22,.08),
+    rgba(232,160,32,.08), rgba(139,37,0,.10));
+  filter: blur(90px); opacity: .45;
+  animation: fxSpin 120s linear infinite;
+}
+
+@keyframes fxFloatA { 0%{transform:translate(0,0)} 100%{transform:translate(8vw,10vh)} }
+@keyframes fxFloatB { 0%{transform:translate(0,0)} 100%{transform:translate(-10vw,-8vh)} }
+@keyframes fxSpin   { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .fx-bg .orb, .fx-bg .orb2, .fx-bg .aurora { animation: none; }
+  html { scroll-behavior: auto; }
+}
+
+body { position: relative; }
+.brand-logo { border-radius: 8px; }
+
+/* Simple, clean transitions — no transform jumps */
+a, button, .btn, .sb-link, input, select, textarea {
+  transition: background-color .25s ease, color .25s ease,
+              border-color .25s ease, box-shadow .25s ease,
+              opacity .25s ease !important;
+}
+.btn:hover { filter: brightness(1.05); }
+.btn:active { filter: brightness(.95); }
+
+/* Reveal on scroll — subtle fade only, no slide */
+.fx-reveal { opacity: 0; transition: opacity .8s ease; }
+.fx-reveal.in { opacity: 1; }
