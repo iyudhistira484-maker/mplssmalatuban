@@ -327,3 +327,43 @@
   .nav-menu > a, .sb-link, .btn{min-height:42px}
 }
 :focus-visible{outline:2px solid var(--secondary,#C8860A);outline-offset:2px;border-radius:6px}
+
+/* =====================================================================
+   5) INSTAGRAM FOLLOW BUTTON — Premium Nusantara Style
+   ===================================================================== */
+.instagram-btn{
+  cursor:pointer !important;
+}
+
+.instagram-btn:hover{
+  transform:scale(1.15) !important;
+  box-shadow:0 12px 32px rgba(200,134,10,.5) !important;
+}
+
+.instagram-btn:hover span{
+  opacity:1 !important;
+}
+
+.instagram-btn:active{
+  transform:scale(1.08) !important;
+}
+
+@media (prefers-reduced-motion:no-preference){
+  .instagram-btn i{
+    animation:instagram-pulse-in .6s cubic-bezier(.34,1.56,.64,1);
+  }
+}
+
+@keyframes instagram-pulse-in{
+  0%{
+    transform:scale(.8);
+    opacity:.6;
+  }
+  50%{
+    transform:scale(1.05);
+  }
+  100%{
+    transform:scale(1);
+    opacity:1;
+  }
+}
