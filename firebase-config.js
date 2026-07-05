@@ -5,12 +5,13 @@ import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-aut
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 export const firebaseConfig = {
-  apiKey: "AIzaSyDh5iioG5-a_dO0VJF_3_wSWwBfYgaPY4U",
-  authDomain: "mplsnew-fb91c.firebaseapp.com",
-  projectId: "mplsnew-fb91c",
-  storageBucket: "mplsnew-fb91c.firebasestorage.app",
-  messagingSenderId: "865259068640",
-  appId: "1:865259068640:web:abbdac421cbd2b56e10485"
+  apiKey: "AIzaSyB3NGx_z2KvhCMeoyPdIVpgsOxgmDF_Yrc",
+  authDomain: "mplssmala-90d68.firebaseapp.com",
+  projectId: "mplssmala-90d68",
+  storageBucket: "mplssmala-90d68.firebasestorage.app",
+  messagingSenderId: "11122419322",
+  appId: "1:11122419322:web:0396b3525ca8752a2c7dc3",
+  measurementId: "G-4W0E7ZNXK4"
 };
 
 // === Konfigurasi Sekolah ===

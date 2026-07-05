@@ -14,7 +14,7 @@ export const PENALTY_RULES = {
   copy:       { points: 8,  label: 'Copy / cut konten' },
   paste:      { points: 5,  label: 'Paste konten' },
 };
-const MAX_VIOLATIONS_BEFORE_AUTOSUBMIT = 5;
+const MAX_VIOLATIONS_BEFORE_AUTOSUBMIT = 10;
 
 // Tulis log audit pelanggaran ke Firestore (collection: auditLogs)
 async function writeAuditLog({ profile, type, message, quizSet, penalty, meta = {} }) {
