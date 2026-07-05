@@ -6,7 +6,7 @@
 // - File ini cuma MEMBLOKIR UI absensi di luar jam buka/tutup
 (function () {
   const OPEN_HOUR = 6,  OPEN_MIN  = 45;   // 06:45
-  const CLOSE_HOUR = 23, CLOSE_MIN = 59;  // 23:59
+  const CLOSE_HOUR = 15, CLOSE_MIN = 30;  // 15:30
 
   function nowMinutes() {
     const d = new Date();
