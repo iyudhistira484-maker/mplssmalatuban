@@ -18,8 +18,8 @@ export const firebaseConfig = {
 export const SCHOOL_CONFIG = {
   name: "SMA Negeri 5 Tuban",
   // Koordinat default SMA Negeri 5 Tuban (perkiraan, ganti sesuai lokasi pasti sekolah)
-  lat: -6.956297,
-  lng: 112.018762,
+  lat: -6.9769742,
+  lng: 112.0620238,
   attendanceRadiusMeter: 300,
   groups: ["Gugus 1", "Gugus 2", "Gugus 3", "Gugus 4", "Gugus 5", "Gugus 6", "Gugus 7"]
 };
