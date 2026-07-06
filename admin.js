@@ -488,7 +488,7 @@ async function pageJawaban() {
         </div>
       </div>
       <div class="table-wrap"><table class="tbl" id="tblA">
-        <thead><tr><th>Siswa</th><th>Gugus</th><th>Set</th><th>Skor Auto</th><th>Pelanggaran</th><th>Nilai Akhir</th><th>Aksi</th></tr></thead>
+        <thead><tr><th>Siswa</th><th>Gugus</th><th>Set</th><th>Pelanggaran</th><th>Nilai Akhir</th><th>Aksi</th></tr></thead>
         <tbody></tbody>
       </table></div>
     </div>`;
@@ -503,11 +503,10 @@ async function pageJawaban() {
       <td><strong>${a.name}</strong><br><small style="color:var(--muted)">${a.kelas||''}</small></td>
       <td><span class="badge blue">${a.gugus||'-'}</span></td>
       <td>${a.quizSet}</td>
-      <td>${a.autoScore||0}/${a.maxAutoScore||0}</td>
       <td>${a.violations ? `<span class="badge red">${a.violations}</span>` : '<span class="badge green">0</span>'}</td>
       <td>${a.finalScore!=null?`<strong>${a.finalScore}</strong>`:'<span class="badge gold">Belum</span>'}</td>
       <td><button class="btn btn-outline" onclick="window.gradeModal('${a.id}')"><i class="fa-solid fa-pen"></i> Nilai</button></td>
-    </tr>`).join('') || `<tr><td colspan="7" class="empty">Belum ada jawaban</td></tr>`;
+    </tr>`).join('') || `<tr><td colspan="6" class="empty">Belum ada jawaban</td></tr>`;
   };
   pageUnsubscribe = onSnapshot(collection(db, 'answers'), (snap) => {
     snap.docChanges().forEach(change => {
@@ -542,26 +541,12 @@ window.gradeModal = async (id) => {
   let perQuestion = totalPoints / qIds.length;
 
   const renderModal = () => {
-    const answered = Object.keys(correct).filter(k => correct[k]).length;
-    const autoScore = Math.round((answered / qIds.length) * 100);
-    const manual = document.getElementById('manualScore');
-    const displayScore = manual ? manual.value : autoScore;
-
     let qHtml = '';
     qIds.forEach((qId, i) => {
       const q = questionsCache ? questionsCache.find(x => x.id === qId) : null;
       const ans = a.answers[qId];
-      const isCorrect = correct[qId];
-
       qHtml += `<div style="padding:14px;margin-bottom:10px;background:var(--bg);border-radius:10px;border:1px solid var(--line)">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px">
-          <div style="font-weight:600;font-size:.9rem;flex:1">${i+1}. ${q ? q.text : '<em style="color:var(--muted)">Soal telah dihapus</em>'}</div>
-          <div style="display:flex;gap:4px;flex-shrink:0">
-            <button class="btn btn-sm ${isCorrect?'btn-primary':'btn-outline'}" onclick="correctToggle('${qId}',true)" style="padding:4px 10px;font-size:.8rem" ${!isCorrect?'':'disabled'}><i class="fa-solid fa-check"></i> Benar</button>
-            <button class="btn btn-sm ${!isCorrect?'btn-danger':'btn-outline'}" onclick="correctToggle('${qId}',false)" style="padding:4px 10px;font-size:.8rem" ${isCorrect?'':'disabled'}><i class="fa-solid fa-xmark"></i> Salah</button>
-          </div>
-        </div>`;
-
+        <div style="font-weight:600;font-size:.9rem;margin-bottom:8px">${i+1}. ${q ? q.text : '<em style="color:var(--muted)">Soal telah dihapus</em>'}</div>`;
       if (q && q.type === 'mcq' && q.options) {
         qHtml += `<div style="display:grid;gap:4px">${q.options.map((opt, oi) => {
           const selected = oi === ans;
@@ -587,14 +572,9 @@ window.gradeModal = async (id) => {
       </div>
       <div style="max-height:50vh;overflow-y:auto;margin-bottom:16px">${qHtml}</div>
       <div style="padding-top:14px;border-top:2px solid var(--line);display:flex;flex-direction:column;gap:10px">
-        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-          <span style="font-weight:600">Benar: ${answered}/${qIds.length}</span>
-          <span style="color:var(--muted)">|</span>
-          <span>Skor otomatis: <strong>${autoScore}</strong></span>
-        </div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-          <label style="font-weight:600">Atur nilai manual:</label>
-          <input type="number" id="manualScore" min="0" max="100" value="${a.autoScore || autoScore}" style="width:80px;padding:8px 12px;border:2px solid var(--line);border-radius:8px;font-size:1rem;text-align:center">
+          <label style="font-weight:600">Nilai (0-100):</label>
+          <input type="number" id="manualScore" min="0" max="100" value="0" style="width:80px;padding:8px 12px;border:2px solid var(--line);border-radius:8px;font-size:1rem;text-align:center">
           <span style="font-size:.85rem;color:var(--muted)">/ 100</span>
         </div>
         <div style="display:flex;gap:8px;margin-top:6px">
@@ -620,8 +600,7 @@ window.gradeModal = async (id) => {
       try {
         await updateDoc(doc(db, 'answers', id), {
           finalScore,
-          gradedAt: serverTimestamp(),
-          gradingDetail: { correctMap: correct, correctCount: answered, totalQuestions: qIds.length }
+          gradedAt: serverTimestamp()
         });
         hideModal('modal');
         toast('Nilai berhasil disimpan', { type: 'success' });
@@ -631,11 +610,6 @@ window.gradeModal = async (id) => {
         document.getElementById('btnSaveGrade').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Simpan Nilai';
       }
     };
-  };
-
-  window.correctToggle = (qId, val) => {
-    correct[qId] = val;
-    renderModal();
   };
 
   renderModal();
@@ -1088,12 +1062,12 @@ async function pageExport() {
 window.dlCsv = async (gugus) => {
   try {
     const snap = await getDocs(collection(db,'answers'));
-    const rows = [['Nama','NIS','Kelas','Gugus','Set Soal','Skor Otomatis','Skor Maks','Nilai Akhir','Pelanggaran']];
+    const rows = [['Nama','NIS','Kelas','Gugus','Set Soal','Nilai Akhir','Pelanggaran']];
     snap.forEach(d => {
       const a = d.data();
       if (gugus && a.gugus !== gugus) return;
       if (a.finalScore == null) return;
-      rows.push([a.name, a.nis||'', a.kelas||'', a.gugus||'', a.quizSet||'', a.autoScore||0, a.maxAutoScore||0, a.finalScore, a.violations||0]);
+      rows.push([a.name, a.nis||'', a.kelas||'', a.gugus||'', a.quizSet||'', a.finalScore, a.violations||0]);
     });
     if (rows.length === 1) return toast('Tidak ada data untuk diunduh', { type:'warning' });
     const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
