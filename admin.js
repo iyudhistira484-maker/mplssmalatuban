@@ -528,7 +528,7 @@ async function pageJawaban() {
         </div>
       </div>
       <div class="table-wrap"><table class="tbl" id="tblA">
-        <thead><tr><th>Siswa</th><th>Gugus</th><th>Set</th><th>Pelanggaran</th><th>Nilai Akhir</th><th>Aksi</th></tr></thead>
+        <thead><tr><th>Siswa</th><th>Gugus</th><th>Set</th><th>Skor Auto</th><th>Pelanggaran</th><th>Nilai Akhir</th><th>Aksi</th></tr></thead>
         <tbody></tbody>
       </table></div>
     </div>`;
@@ -543,10 +543,11 @@ async function pageJawaban() {
       <td><strong>${a.name}</strong><br><small style="color:var(--muted)">${a.kelas||''}</small></td>
       <td><span class="badge blue">${a.gugus||'-'}</span></td>
       <td>${a.quizSet}</td>
+      <td>${a.autoScore||0}/${a.maxAutoScore||0}</td>
       <td>${a.violations ? `<span class="badge red">${a.violations}</span>` : '<span class="badge green">0</span>'}</td>
       <td>${a.finalScore!=null?`<strong>${a.finalScore}</strong>`:'<span class="badge gold">Belum</span>'}</td>
       <td><button class="btn btn-outline" onclick="window.gradeModal('${a.id}')"><i class="fa-solid fa-pen"></i> Nilai</button></td>
-    </tr>`).join('') || `<tr><td colspan="6" class="empty">Belum ada jawaban</td></tr>`;
+    </tr>`).join('') || `<tr><td colspan="7" class="empty">Belum ada jawaban</td></tr>`;
   };
   pageUnsubscribe = onSnapshot(collection(db, 'answers'), (snap) => {
     snap.docChanges().forEach(change => {
@@ -633,7 +634,7 @@ window.gradeModal = async (id) => {
         </div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
           <label style="font-weight:600">Atur nilai manual:</label>
-          <input type="number" id="manualScore" min="0" max="100" value="${autoScore}" style="width:80px;padding:8px 12px;border:2px solid var(--line);border-radius:8px;font-size:1rem;text-align:center">
+          <input type="number" id="manualScore" min="0" max="100" value="${a.autoScore || autoScore}" style="width:80px;padding:8px 12px;border:2px solid var(--line);border-radius:8px;font-size:1rem;text-align:center">
           <span style="font-size:.85rem;color:var(--muted)">/ 100</span>
         </div>
         <div style="display:flex;gap:8px;margin-top:6px">

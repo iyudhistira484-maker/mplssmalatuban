@@ -384,12 +384,17 @@ async function renderQuiz(setName) {
   const submit = async (auto, reason='Submit normal') => {
     if (!started) return; started = false;
     cleanup();
+    let autoScore = 0, maxScore = 0;
+    qs.forEach(q => {
+      if (q.type === 'mcq') { maxScore += 10; if (answers[q.id] === q.correctIndex) autoScore += 10; }
+    });
+    const scoreAfterPenalty = Math.max(0, autoScore - penaltyTotal);
     try {
       await addDoc(collection(db, 'answers'), {
         userId: profile.uid, name: profile.name, gugus: profile.gugus, kelas: profile.kelas,
         quizSet: setName, answers,
-        autoScore: 0, maxAutoScore: 0,
-        penaltyTotal: 0, scoreAfterPenalty: 0,
+        autoScore, maxAutoScore: maxScore,
+        penaltyTotal, scoreAfterPenalty,
         violations: violationCount, violationLog,
         reason, status: 'submitted', autoSubmitted: !!auto,
         finalScore: null, gradedAt: null,
@@ -400,13 +405,14 @@ async function renderQuiz(setName) {
           <div class="card-icon" style="margin:0 auto 16px"><i class="fa-solid fa-circle-check"></i></div>
           <h3 style="font-family:var(--font-display);font-size:24px;margin-bottom:6px">Jawaban Terkirim</h3>
           <p style="color:var(--muted);margin-bottom:20px">${reason}</p>
-          <p style="color:var(--muted);margin-bottom:16px;text-align:center">Jawabanmu akan dikoreksi oleh admin. Cek hasilnya nanti di menu Nilai.</p>
-          <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+          <div class="result-score">${scoreAfterPenalty}</div>
+          <p style="margin-top:8px;color:var(--muted)">Skor otomatis: ${autoScore}/${maxScore} · Penalti: −${penaltyTotal}</p>
+          <div style="display:flex;gap:10px;justify-content:center;margin-top:22px;flex-wrap:wrap">
             <button class="btn btn-outline" onclick="document.querySelector('[data-page=soal]').click()">Kembali ke Soal</button>
             <button class="btn btn-primary" onclick="document.querySelector('[data-page=nilai]').click()">Lihat Nilai</button>
           </div>
         </div>`;
-      toast('Jawaban terkirim. Menunggu koreksi admin.', { type: 'success' });
+      toast(`Terkirim · Skor ${scoreAfterPenalty}`, { type: 'success' });
     } catch (e) { toast('Gagal kirim: ' + e.message, { type: 'error' }); }
   };
 
@@ -559,9 +565,10 @@ async function pageNilai() {
   if (!items.length) return content.innerHTML = emptyState('Belum ada nilai', 'Kerjakan soal dulu untuk melihat hasil.');
   content.innerHTML = `<div class="panel"><div class="panel-head"><h3>Hasil Nilai Saya</h3></div>
     <div class="table-wrap"><table class="tbl">
-      <thead><tr><th>Set Soal</th><th>Nilai Akhir</th><th>Status</th></tr></thead>
+      <thead><tr><th>Set Soal</th><th>Skor Otomatis</th><th>Nilai Akhir</th><th>Status</th></tr></thead>
       <tbody>${items.map(a => `<tr>
         <td><strong>${a.quizSet}</strong></td>
+        <td>${a.autoScore || 0}/${a.maxAutoScore || 0}</td>
         <td>${a.finalScore != null ? `<strong style="color:var(--blue)">${a.finalScore}</strong>` : '-'}</td>
         <td>${a.finalScore != null ? '<span class="badge green">Sudah dinilai</span>' : '<span class="badge gold">Menunggu koreksi admin</span>'}</td>
       </tr>`).join('')}</tbody>
