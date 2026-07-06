@@ -192,7 +192,7 @@ async function pageOverview() {
 // ===== Soal List =====
 async function pageSoal() {
   try {
-    const snap = await getDocs(collection(db, 'questions'));
+    const snap = await getDocs(query(collection(db, 'questions'), orderBy('order'), orderBy('createdAt')));
     const items = []; snap.forEach(d => items.push({ id: d.id, ...d.data() }));
     if (!items.length) { content.innerHTML = emptyState('Belum ada soal', 'Admin belum menambahkan soal.'); return; }
     // group by quizSet (each doc = single question; quizSet groups them)
@@ -222,7 +222,7 @@ window.loadPage = loadPage;
 
 // ===== Quiz with Anti-Cheat (International Exam UI) =====
 async function renderQuiz(setName) {
-  const snap = await getDocs(query(collection(db, 'questions'), where('quizSet','==',setName)));
+  const snap = await getDocs(query(collection(db, 'questions'), where('quizSet','==',setName), orderBy('order'), orderBy('createdAt')));
   const qs = []; snap.forEach(d => qs.push({ id: d.id, ...d.data() }));
   if (!qs.length) return toast('Soal kosong', { type: 'warning' });
 

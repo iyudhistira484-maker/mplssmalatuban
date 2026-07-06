@@ -206,7 +206,7 @@ async function pageOverview() {
 
 // ===== Soal CRUD (with bulk creation & multi-delete) =====
 async function pageSoal() {
-  const snap = await getDocs(collection(db,'questions'));
+  const snap = await getDocs(query(collection(db,'questions'), orderBy('order'), orderBy('createdAt')));
   const items = []; snap.forEach(d => items.push({ id:d.id, ...d.data() }));
   // group by set
   const groups = {};
@@ -358,11 +358,11 @@ function openBulkModal() {
     if (!setName) return toast('Nama set wajib diisi', {type:'warning'});
     const items = [];
     let invalid = 0;
-    list.querySelectorAll('.bulk-item').forEach(it => {
+    list.querySelectorAll('.bulk-item').forEach((it, idx) => {
       const type = it.querySelector('[data-k="type"]').value;
       const text = it.querySelector('[data-k="text"]').value.trim();
       if (!text) { invalid++; return; }
-      const data = { quizSet:setName, type, text, createdAt: serverTimestamp() };
+      const data = { quizSet:setName, type, text, order: idx, createdAt: serverTimestamp() };
       if (type === 'mcq') {
         const opts = it.querySelector('[data-k="opts"]').value.split('\n').map(s=>s.trim()).filter(Boolean);
         if (opts.length < 2) { invalid++; return; }
