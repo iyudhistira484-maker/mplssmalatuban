@@ -512,9 +512,6 @@ window.delS = async (c,id) => {
 
 // ===== Jawaban + Penilaian =====
 async function pageJawaban() {
-  const qSnap = await getDocs(collection(db,'questions'));
-  const questionsMap = {};
-  qSnap.forEach(d => { questionsMap[d.id] = d.data(); });
   const filter = `<select id="fGugus" style="padding:8px 12px;border:1px solid var(--line);border-radius:10px"><option value="">Semua Gugus</option>${SCHOOL_CONFIG.groups.map(g=>`<option>${g}</option>`).join('')}</select>`;
   content.innerHTML = `
     <div class="panel">
@@ -541,14 +538,10 @@ async function pageJawaban() {
       <td><strong>${a.name}</strong><br><small style="color:var(--muted)">${a.kelas||''}</small></td>
       <td><span class="badge blue">${a.gugus||'-'}</span></td>
       <td>${a.quizSet}</td>
-      <td>—</td>
       <td>${a.violations ? `<span class="badge red">${a.violations}</span>` : '<span class="badge green">0</span>'}</td>
       <td>${a.finalScore!=null?`<strong>${a.finalScore}</strong>`:'<span class="badge gold">Belum</span>'}</td>
-      <td>
-        <button class="btn btn-ghost" onclick="window.viewAnswers('${a.id}')" title="Lihat jawaban siswa"><i class="fa-solid fa-eye"></i></button>
-        <button class="btn btn-outline" onclick="window.gradeA('${a.id}')"><i class="fa-solid fa-pen"></i> Nilai</button>
-      </td>
-    </tr>`).join('') || `<tr><td colspan="7" class="empty">Belum ada jawaban</td></tr>`;
+      <td><button class="btn btn-outline" onclick="window.gradeA('${a.id}')"><i class="fa-solid fa-pen"></i> Nilai</button></td>
+    </tr>`).join('') || `<tr><td colspan="6" class="empty">Belum ada jawaban</td></tr>`;
   };
   pageUnsubscribe = onSnapshot(collection(db, 'answers'), (snap) => {
     snap.docChanges().forEach(change => {
@@ -567,56 +560,6 @@ async function pageJawaban() {
     render(gugus);
   });
   document.getElementById('fGugus').onchange = (e) => render(e.target.value);
-  window.viewAnswers = (id) => {
-    const a = items.find(x => x.id === id);
-    if (!a) return toast('Data tidak ditemukan', {type:'error'});
-    const qIds = Object.keys(a.answers || {});
-    const grouped = {};
-    qIds.forEach(qId => {
-      const q = questionsMap[qId];
-      const set = (q && q.quizSet) || a.quizSet || 'Umum';
-      if (!grouped[set]) grouped[set] = [];
-      grouped[set].push(qId);
-    });
-    let html = `
-      <div style="margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--line)">
-        <strong>${a.name}</strong> — ${a.gugus||'-'}<br>
-        <span style="color:var(--muted)">${a.finalScore!=null?'Nilai: '+a.finalScore:'<span class="badge gold">Belum dinilai</span>'}</span>
-      </div>
-      <div style="max-height:60vh;overflow-y:auto">`;
-    let num = 0;
-    Object.keys(grouped).forEach(setName => {
-      if (Object.keys(grouped).length > 1) {
-        html += `<h4 style="margin:12px 0 6px;color:var(--ink-2)">${setName}</h4>`;
-      }
-      grouped[setName].forEach(qId => {
-        const q = questionsMap[qId];
-        const ans = a.answers[qId];
-        num++;
-        html += `<div style="padding:12px;margin-bottom:8px;background:var(--bg);border-radius:10px;border:1px solid var(--line)">
-          <div style="font-weight:600;margin-bottom:6px;font-size:.9rem">${num}. ${q ? q.text : '<em style="color:var(--muted)">Soal telah dihapus</em>'}</div>`;
-        if (q && q.type === 'mcq' && q.options) {
-          html += `<div style="display:grid;gap:4px">${q.options.map((opt, oi) => {
-            const selected = oi === ans;
-            const correct = oi === q.correctIndex;
-            let cls = 'padding:6px 10px;border-radius:6px;font-size:.85rem';
-            if (selected && correct) cls += ';background:#d4edda;color:#155724;border:1px solid #c3e6cb';
-            else if (selected) cls += ';background:#f8d7da;color:#721c24;border:1px solid #f5c6cb';
-            else if (correct) cls += ';background:#e2f0d9;color:#2d5a1e;border:1px solid #c8e6b3';
-            else cls += ';background:transparent;color:var(--muted)';
-            const icon = selected ? (correct ? '✓' : '✗') : (correct ? '✓' : '');
-            return `<div style="${cls}">${icon ? `<strong>${icon}</strong> ` : ''}${opt}</div>`;
-          }).join('')}</div>`;
-        } else {
-          html += `<div style="padding:8px 12px;background:var(--white);border-radius:6px;font-size:.85rem;border:1px solid var(--line)">${ans || '<em style="color:var(--muted)">Tidak dijawab</em>'}</div>`;
-        }
-        html += `</div>`;
-      });
-    });
-    html += `</div>`;
-    modalBox.innerHTML = `<div class="modal-head"><h3>Detail Jawaban</h3><button class="modal-close" onclick="hideModal('modal')">&times;</button></div><div class="modal-body">${html}</div>`;
-    showModal('modal');
-  };
 }
 window.gradeA = (id) => {
   const v = prompt('Masukkan nilai akhir (0-100):');
