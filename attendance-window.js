@@ -1,12 +1,12 @@
 // Attendance Window Control
 // - Absensi dibuka jam 06:45
-// - Absensi ditutup jam 15:30
+// - Absensi ditutup jam 21:00
 // - Reset harian otomatis udh ditangani sama dokumen
 //   attendance/{uid}_{YYYY-MM-DD} di attendance.html
 // - File ini cuma MEMBLOKIR UI absensi di luar jam buka/tutup
 (function () {
   const OPEN_HOUR = 6,  OPEN_MIN  = 45;   // 06:45
-  const CLOSE_HOUR = 15, CLOSE_MIN = 30;  // 15:30
+  const CLOSE_HOUR = 21, CLOSE_MIN = 0;   // 21:00
 
   function nowMinutes() {
     const d = new Date();
