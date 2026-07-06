@@ -112,7 +112,20 @@ document.getElementById('btnGps').addEventListener('click', () => {
   if (!navigator.geolocation) return toast('Browser tidak mendukung GPS', { type:'error' });
   btnLoading(btn, true, 'Mendeteksi lokasi...');
   statusEl.textContent = 'Mengambil koordinat GPS...';
+
+  let resolved = false;
+  const timeoutId = setTimeout(() => {
+    if (!resolved) {
+      resolved = true;
+      btnLoading(btn, false);
+      statusEl.textContent = 'Waktu habis. Pastikan GPS/lokasi aktif di perangkat.';
+      toast('GPS timeout. Coba lagi atau gunakan HP/lokasi dengan sinyal terbuka.', { type:'error' });
+    }
+  }, 20000);
+
   navigator.geolocation.getCurrentPosition(async (pos) => {
+    if (resolved) return;
+    resolved = true; clearTimeout(timeoutId);
     const { latitude, longitude, accuracy } = pos.coords;
     const d = distMeter(latitude, longitude, SCHOOL_CONFIG.lat, SCHOOL_CONFIG.lng);
     statusEl.innerHTML = `Lat: ${latitude.toFixed(5)}<br>Lng: ${longitude.toFixed(5)}<br>Akurasi: ±${Math.round(accuracy)}m<br>Jarak ke sekolah: <b>${Math.round(d)} m</b>`;
@@ -124,8 +137,16 @@ document.getElementById('btnGps').addEventListener('click', () => {
       status: 'hadir', lat: latitude, lng: longitude,
       distance: Math.round(d), accuracy: Math.round(accuracy),
     });
-  }, () => { btnLoading(btn,false); toast('Izinkan akses lokasi pada browser.', { type:'warning' }); },
-  { enableHighAccuracy:true, timeout:15000 });
+  }, (err) => {
+    if (resolved) return;
+    resolved = true; clearTimeout(timeoutId);
+    btnLoading(btn, false);
+    const code = err.code;
+    if (code === 1) toast('Akses lokasi ditolak. Izinkan di pengaturan browser.', { type:'warning' });
+    else if (code === 2) toast('Posisi tidak tersedia. Coba di luar ruangan.', { type:'warning' });
+    else if (code === 3) toast('Waktu permintaan lokasi habis. Coba lagi.', { type:'warning' });
+    else toast('Gagal dapatkan lokasi: ' + err.message, { type:'error' });
+  }, { enableHighAccuracy:true, timeout:15000 });
 });
 
 // ===== Face Verification (Izin/Sakit) =====
