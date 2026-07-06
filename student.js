@@ -192,8 +192,9 @@ async function pageOverview() {
 // ===== Soal List =====
 async function pageSoal() {
   try {
-    const snap = await getDocs(query(collection(db, 'questions'), orderBy('order'), orderBy('createdAt')));
+    const snap = await getDocs(collection(db, 'questions'));
     const items = []; snap.forEach(d => items.push({ id: d.id, ...d.data() }));
+    items.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity) || (a.createdAt?.toMillis?.() || 0) - (b.createdAt?.toMillis?.() || 0));
     if (!items.length) { content.innerHTML = emptyState('Belum ada soal', 'Admin belum menambahkan soal.'); return; }
     // group by quizSet (each doc = single question; quizSet groups them)
     const sets = {};
@@ -222,8 +223,9 @@ window.loadPage = loadPage;
 
 // ===== Quiz with Anti-Cheat (International Exam UI) =====
 async function renderQuiz(setName) {
-  const snap = await getDocs(query(collection(db, 'questions'), where('quizSet','==',setName), orderBy('order'), orderBy('createdAt')));
+  const snap = await getDocs(query(collection(db, 'questions'), where('quizSet','==',setName)));
   const qs = []; snap.forEach(d => qs.push({ id: d.id, ...d.data() }));
+  qs.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity) || (a.createdAt?.toMillis?.() || 0) - (b.createdAt?.toMillis?.() || 0));
   if (!qs.length) return toast('Soal kosong', { type: 'warning' });
 
   pageTitle.textContent = `Ujian · ${setName}`;
