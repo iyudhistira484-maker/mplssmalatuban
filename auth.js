@@ -9,7 +9,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 export async function registerStudent({ name, email, password, nis, kelas, gugus }) {
-  const cred = await createUserWithEmailAndPassword(auth, email, password);
+  const cred = await createUserWithEmailAndPassword(auth, email.trim(), password.trim());
   await setDoc(doc(db, 'users', cred.user.uid), {
     role: 'student',
     name, email, nis, kelas, gugus,
@@ -19,7 +19,7 @@ export async function registerStudent({ name, email, password, nis, kelas, gugus
 }
 
 export async function loginEmail(email, password) {
-  const cred = await signInWithEmailAndPassword(auth, email, password);
+  const cred = await signInWithEmailAndPassword(auth, email.trim(), password.trim());
   return cred.user;
 }
 

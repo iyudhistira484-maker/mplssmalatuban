@@ -275,9 +275,17 @@ document.getElementById('formLogin').addEventListener('submit', async (e) => {
     }
   } catch (err) {
     btnLoading(btn, false);
-    let msg = 'Email atau password salah.';
-    if (err.message.includes('user-not-found')) msg = 'Email belum terdaftar. Silakan daftar dulu.';
-    toast(msg, { type: 'error' });
+    console.error('[Login Error]', err.code || err.message);
+    const code = err.code?.replace('auth/', '') || '';
+    const map = {
+      'invalid-credential': 'Email atau password salah.',
+      'user-not-found':    'Email belum terdaftar. Silakan daftar dulu.',
+      'wrong-password':    'Email atau password salah.',
+      'too-many-requests': 'Terlalu banyak percobaan. Coba lagi nanti.',
+      'network-request-failed': 'Koneksi internet bermasalah. Coba lagi.',
+      'invalid-email':     'Format email tidak valid.',
+    };
+    toast(map[code] || 'Email atau password salah.', { type: 'error' });
   }
 });
 </script>

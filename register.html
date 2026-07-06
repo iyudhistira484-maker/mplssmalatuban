@@ -318,6 +318,8 @@ form.addEventListener('submit', async (e) => {
   });
   if (!ok) return toast('Lengkapi semua data', { type: 'warning' });
   const data = Object.fromEntries(new FormData(form));
+  data.email = data.email.trim();
+  data.password = data.password.trim();
   if (data.password.length < 6) return toast('Password minimal 6 karakter', { type: 'warning' });
 
   const btn = document.getElementById('btnSubmit');
