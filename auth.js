@@ -8,11 +8,11 @@ import {
   doc, setDoc, getDoc, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-export async function registerStudent({ name, email, password, nis, kelas, gugus }) {
+export async function registerStudent({ name, email, password, nis, gugus }) {
   const cred = await createUserWithEmailAndPassword(auth, email.trim(), password.trim());
   await setDoc(doc(db, 'users', cred.user.uid), {
     role: 'student',
-    name, email, nis, kelas, gugus,
+    name, email, nis, gugus,
     createdAt: serverTimestamp()
   });
   return cred.user;
