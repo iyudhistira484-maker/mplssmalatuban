@@ -521,7 +521,23 @@ async function renderSchedule(coll, label) {
 }
 
 // ===== Rating OSIS =====
-function pageRating() {
+async function pageRating() {
+  const now = new Date();
+  const wib = new Date(now.getTime() + 7 * 60 * 60 * 1000);
+  const today6 = new Date(Date.UTC(wib.getUTCFullYear(), wib.getUTCMonth(), wib.getUTCDate(), 6 - 7, 0, 0, 0));
+  if (wib.getUTCHours() < 6) today6.setDate(today6.getDate() - 1);
+  const snap = await getDocs(query(collection(db, 'ratings'), where('userId','==',profile.uid)));
+  const existing = []; snap.forEach(d => existing.push(d.data().createdAt));
+  const found = existing.some(c => c && c.toDate().getTime() >= today6.getTime());
+  if (found) {
+    content.innerHTML = `
+      <div class="panel" style="max-width:560px;margin:0 auto;text-align:center">
+        <div class="card-icon gold" style="margin:0 auto 12px"><i class="fa-solid fa-star"></i></div>
+        <h3 style="font-family:var(--font-display);font-size:22px">Terima kasih!</h3>
+        <p style="color:var(--muted)">Kamu sudah memberi rating hari ini.<br>Kembali lagi besok setelah jam 6 pagi.</p>
+      </div>`;
+    return;
+  }
   content.innerHTML = `
     <div class="panel" style="max-width:560px;margin:0 auto;text-align:center">
       <div class="card-icon gold" style="margin:0 auto 12px"><i class="fa-solid fa-star"></i></div>
