@@ -589,8 +589,8 @@ window.gradeModal = async (id) => {
 
     document.getElementById('manualScore').oninput = function() {
       const v = +this.value;
+      if (isNaN(v) || v < 0) { this.value = 0; return; }
       if (v > 100) this.value = 100;
-      if (v < 0) this.value = 0;
     };
 
     document.getElementById('btnSaveGrade').onclick = async () => {

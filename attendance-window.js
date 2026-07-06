@@ -161,8 +161,8 @@
 
   function start() {
     apply();
-    // Periksa setiap 30 detik supaya UI berubah otomatis saat lewat jam buka/tutup
-    setInterval(apply, 30 * 1000);
+    const tid = setInterval(apply, 30 * 1000);
+    window.addEventListener('beforeunload', () => clearInterval(tid));
   }
 
   if (document.readyState === 'loading') {

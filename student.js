@@ -388,7 +388,7 @@ async function renderQuiz(setName) {
     cleanup();
     try {
       await addDoc(collection(db, 'answers'), {
-        userId: profile.uid, name: profile.name, gugus: profile.gugus, kelas: profile.kelas || null,
+        userId: profile.uid, name: profile.name, gugus: profile.gugus || null, kelas: profile.kelas || null,
         quizSet: setName, answers,
         violations: violationCount, violationLog,
         reason, status: 'submitted', autoSubmitted: !!auto,
@@ -558,7 +558,7 @@ async function pageRating() {
     btnLoading(btn, true, 'Mengirim...');
     try {
       await addDoc(collection(db, 'ratings'), {
-        userId: profile.uid, name: profile.name, gugus: profile.gugus,
+        userId: profile.uid, name: profile.name,         gugus: profile.gugus || null,
         rating: val, comment: document.getElementById('cmt').value.trim(),
         createdAt: serverTimestamp()
       });
