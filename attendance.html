@@ -110,34 +110,41 @@ document.getElementById('btnGps').addEventListener('click', () => {
   const btn = document.getElementById('btnGps');
   const statusEl = document.getElementById('status');
   if (!navigator.geolocation) return toast('Browser tidak mendukung GPS', { type:'error' });
+  if (!profile) return toast('Data profil belum siap, coba sebentar lagi.', { type:'warning' });
   btnLoading(btn, true, 'Mendeteksi lokasi...');
   statusEl.textContent = 'Mengambil koordinat GPS...';
 
   let resolved = false;
   const timeoutId = setTimeout(() => {
-    if (!resolved) {
-      resolved = true;
-      btnLoading(btn, false);
-      statusEl.textContent = 'Waktu habis. Pastikan GPS/lokasi aktif di perangkat.';
-      toast('GPS timeout. Coba lagi atau gunakan HP/lokasi dengan sinyal terbuka.', { type:'error' });
-    }
+    if (resolved) return;
+    resolved = true;
+    btnLoading(btn, false);
+    statusEl.textContent = 'Waktu habis. Pastikan GPS/lokasi aktif di perangkat.';
+    toast('GPS timeout. Coba lagi atau gunakan HP/lokasi dengan sinyal terbuka.', { type:'error' });
   }, 20000);
 
-  navigator.geolocation.getCurrentPosition(async (pos) => {
+  const onSuccess = async (pos) => {
     if (resolved) return;
     resolved = true; clearTimeout(timeoutId);
-    const { latitude, longitude, accuracy } = pos.coords;
-    const d = distMeter(latitude, longitude, SCHOOL_CONFIG.lat, SCHOOL_CONFIG.lng);
-    statusEl.innerHTML = `Lat: ${latitude.toFixed(5)}<br>Lng: ${longitude.toFixed(5)}<br>Akurasi: ±${Math.round(accuracy)}m<br>Jarak ke sekolah: <b>${Math.round(d)} m</b>`;
-    if (d > SCHOOL_CONFIG.attendanceRadiusMeter) {
+    try {
+      const { latitude, longitude, accuracy } = pos.coords;
+      const d = distMeter(latitude, longitude, SCHOOL_CONFIG.lat, SCHOOL_CONFIG.lng);
+      statusEl.innerHTML = `Lat: ${latitude.toFixed(5)}<br>Lng: ${longitude.toFixed(5)}<br>Akurasi: ±${Math.round(accuracy)}m<br>Jarak ke sekolah: <b>${Math.round(d)} m</b>`;
+      if (d > SCHOOL_CONFIG.attendanceRadiusMeter) {
+        btnLoading(btn, false);
+        return toast(`Anda berada ${Math.round(d)}m dari sekolah. Maks ${SCHOOL_CONFIG.attendanceRadiusMeter}m.`, { type:'error', duration:5000 });
+      }
+      await saveAttendance({
+        status: 'hadir', lat: latitude, lng: longitude,
+        distance: Math.round(d), accuracy: Math.round(accuracy),
+      });
+    } catch (e) {
       btnLoading(btn, false);
-      return toast(`Anda berada ${Math.round(d)}m dari sekolah. Maks ${SCHOOL_CONFIG.attendanceRadiusMeter}m.`, { type:'error', duration:5000 });
+      toast('Gagal simpan absensi: ' + e.message, { type:'error' });
     }
-    await saveAttendance({
-      status: 'hadir', lat: latitude, lng: longitude,
-      distance: Math.round(d), accuracy: Math.round(accuracy),
-    });
-  }, (err) => {
+  };
+
+  const onError = (err) => {
     if (resolved) return;
     resolved = true; clearTimeout(timeoutId);
     btnLoading(btn, false);
@@ -146,7 +153,10 @@ document.getElementById('btnGps').addEventListener('click', () => {
     else if (code === 2) toast('Posisi tidak tersedia. Coba di luar ruangan.', { type:'warning' });
     else if (code === 3) toast('Waktu permintaan lokasi habis. Coba lagi.', { type:'warning' });
     else toast('Gagal dapatkan lokasi: ' + err.message, { type:'error' });
-  }, { enableHighAccuracy:true, timeout:15000 });
+    statusEl.textContent = 'Gagal dapatkan lokasi. Coba lagi.';
+  };
+
+  navigator.geolocation.getCurrentPosition(onSuccess, onError, { enableHighAccuracy: false, timeout: 10000 });
 });
 
 // ===== Face Verification (Izin/Sakit) =====
