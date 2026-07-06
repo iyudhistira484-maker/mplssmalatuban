@@ -3,11 +3,12 @@ import { guardRoute, logout } from './auth.js';
 import { db, SCHOOL_CONFIG } from './firebase-config.js';
 import {
   collection, getDocs, addDoc, deleteDoc, doc, updateDoc, query, where,
-  serverTimestamp, orderBy
+  serverTimestamp, orderBy, onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 const { toast, btnLoading, showModal, hideModal } = window.MPLSUI;
 
 let profile;
+let pageUnsubscribe = null;
 const content = document.getElementById('content');
 const pageTitle = document.getElementById('pageTitle');
 const modal = document.getElementById('modal');
@@ -55,6 +56,7 @@ function safePage(name, fn) {
 }
 
 function loadPage(p) {
+  if (pageUnsubscribe) { pageUnsubscribe(); pageUnsubscribe = null; }
   pageTitle.textContent = titles[p] || p;
   content.innerHTML = '<div class="empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Memuat...</p></div>';
   // sync bottom nav
@@ -510,18 +512,14 @@ window.delS = async (c,id) => {
 
 // ===== Jawaban + Penilaian =====
 async function pageJawaban() {
-  const [ansSnap, qSnap] = await Promise.all([
-    getDocs(collection(db,'answers')),
-    getDocs(collection(db,'questions'))
-  ]);
-  const items=[]; ansSnap.forEach(d=>items.push({id:d.id,...d.data()}));
+  const qSnap = await getDocs(collection(db,'questions'));
   const questionsMap = {};
   qSnap.forEach(d => { questionsMap[d.id] = d.data(); });
   const filter = `<select id="fGugus" style="padding:8px 12px;border:1px solid var(--line);border-radius:10px"><option value="">Semua Gugus</option>${SCHOOL_CONFIG.groups.map(g=>`<option>${g}</option>`).join('')}</select>`;
   content.innerHTML = `
     <div class="panel">
       <div class="panel-head">
-        <h3>Jawaban Siswa (${items.length})</h3>
+        <h3>Jawaban Siswa <span id="jawabanCount">(0)</span></h3>
         <div class="actions" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
           ${filter}
           <button class="btn btn-danger" id="btnResetNilai" title="Hapus semua nilai & jawaban siswa (reset progres)"><i class="fa-solid fa-trash-can"></i> Hapus Semua Nilai</button>
@@ -533,9 +531,12 @@ async function pageJawaban() {
       </table></div>
     </div>`;
   document.getElementById('btnResetNilai').onclick = () => window.resetAllNilai();
+  const items = [];
   const render = (filterG='') => {
     const tbody = content.querySelector('tbody');
     const list = items.filter(a => !filterG || a.gugus===filterG);
+    const countEl = document.getElementById('jawabanCount');
+    if (countEl) countEl.textContent = `(${items.length})`;
     tbody.innerHTML = list.map(a => `<tr>
       <td><strong>${a.name}</strong><br><small style="color:var(--muted)">${a.kelas||''}</small></td>
       <td><span class="badge blue">${a.gugus||'-'}</span></td>
@@ -549,7 +550,22 @@ async function pageJawaban() {
       </td>
     </tr>`).join('') || `<tr><td colspan="8" class="empty">Belum ada jawaban</td></tr>`;
   };
-  render();
+  pageUnsubscribe = onSnapshot(collection(db, 'answers'), (snap) => {
+    snap.docChanges().forEach(change => {
+      const data = { id: change.doc.id, ...change.doc.data() };
+      if (change.type === 'added') {
+        items.push(data);
+      } else if (change.type === 'modified') {
+        const idx = items.findIndex(x => x.id === change.doc.id);
+        if (idx !== -1) items[idx] = data;
+      } else if (change.type === 'removed') {
+        const idx = items.findIndex(x => x.id === change.doc.id);
+        if (idx !== -1) items.splice(idx, 1);
+      }
+    });
+    const gugus = document.getElementById('fGugus')?.value || '';
+    render(gugus);
+  });
   document.getElementById('fGugus').onchange = (e) => render(e.target.value);
   window.viewAnswers = (id) => {
     const a = items.find(x => x.id === id);
