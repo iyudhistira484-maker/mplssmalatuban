@@ -391,7 +391,7 @@ async function renderQuiz(setName) {
     const scoreAfterPenalty = Math.max(0, autoScore - penaltyTotal);
     try {
       await addDoc(collection(db, 'answers'), {
-        userId: profile.uid, name: profile.name, gugus: profile.gugus, kelas: profile.kelas,
+        userId: profile.uid, name: profile.name, gugus: profile.gugus, kelas: profile.kelas || null,
         quizSet: setName, answers,
         autoScore, maxAutoScore: maxScore,
         penaltyTotal, scoreAfterPenalty,
