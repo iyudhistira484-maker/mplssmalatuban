@@ -2,7 +2,7 @@
 import { guardRoute, logout } from './auth.js';
 import { db, SCHOOL_CONFIG } from './firebase-config.js';
 import {
-  collection, getDocs, addDoc, deleteDoc, doc, updateDoc, query, where,
+  collection, getDocs, getDoc, addDoc, deleteDoc, doc, updateDoc, query, where,
   serverTimestamp, orderBy, onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 const { toast, btnLoading, showModal, hideModal } = window.MPLSUI;
@@ -511,7 +511,12 @@ window.delS = async (c,id) => {
 };
 
 // ===== Jawaban + Penilaian =====
+let questionsCache = null;
+
 async function pageJawaban() {
+  const qSnap = await getDocs(collection(db, 'questions'));
+  questionsCache = [];
+  qSnap.forEach(d => questionsCache.push({ id: d.id, ...d.data() }));
   const filter = `<select id="fGugus" style="padding:8px 12px;border:1px solid var(--line);border-radius:10px"><option value="">Semua Gugus</option>${SCHOOL_CONFIG.groups.map(g=>`<option>${g}</option>`).join('')}</select>`;
   content.innerHTML = `
     <div class="panel">
@@ -540,7 +545,7 @@ async function pageJawaban() {
       <td>${a.quizSet}</td>
       <td>${a.violations ? `<span class="badge red">${a.violations}</span>` : '<span class="badge green">0</span>'}</td>
       <td>${a.finalScore!=null?`<strong>${a.finalScore}</strong>`:'<span class="badge gold">Belum</span>'}</td>
-      <td><button class="btn btn-outline" onclick="window.gradeA('${a.id}')"><i class="fa-solid fa-pen"></i> Nilai</button></td>
+      <td><button class="btn btn-outline" onclick="window.gradeModal('${a.id}')"><i class="fa-solid fa-pen"></i> Nilai</button></td>
     </tr>`).join('') || `<tr><td colspan="6" class="empty">Belum ada jawaban</td></tr>`;
   };
   pageUnsubscribe = onSnapshot(collection(db, 'answers'), (snap) => {
@@ -561,13 +566,118 @@ async function pageJawaban() {
   });
   document.getElementById('fGugus').onchange = (e) => render(e.target.value);
 }
-window.gradeA = (id) => {
-  const v = prompt('Masukkan nilai akhir (0-100):');
-  if (v == null) return;
-  const n = +v; if (isNaN(n) || n<0 || n>100) return toast('Nilai tidak valid', {type:'error'});
-  updateDoc(doc(db,'answers',id), { finalScore:n, gradedAt: serverTimestamp() })
-    .then(() => { toast('Nilai disimpan', { type:'success' }); loadPage('jawaban'); })
-    .catch(e => toast(e.message, { type:'error' }));
+
+window.gradeModal = async (id) => {
+  const snap = await getDoc(doc(db, 'answers', id));
+  if (!snap.exists()) return toast('Data tidak ditemukan', { type: 'error' });
+  const a = { id: snap.id, ...snap.data() };
+  const qIds = Object.keys(a.answers || {});
+  if (!qIds.length) return toast('Tidak ada jawaban untuk dinilai', { type: 'warning' });
+
+  const correct = {};
+  a.answers && Object.keys(a.answers).forEach(k => { correct[k] = false; });
+
+  let totalPoints = 100;
+  let perQuestion = totalPoints / qIds.length;
+
+  const renderModal = () => {
+    const answered = Object.keys(correct).filter(k => correct[k]).length;
+    const autoScore = Math.round((answered / qIds.length) * 100);
+    const manual = document.getElementById('manualScore');
+    const displayScore = manual ? manual.value : autoScore;
+
+    let qHtml = '';
+    qIds.forEach((qId, i) => {
+      const q = questionsCache ? questionsCache.find(x => x.id === qId) : null;
+      const ans = a.answers[qId];
+      const isCorrect = correct[qId];
+
+      qHtml += `<div style="padding:14px;margin-bottom:10px;background:var(--bg);border-radius:10px;border:1px solid var(--line)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px">
+          <div style="font-weight:600;font-size:.9rem;flex:1">${i+1}. ${q ? q.text : '<em style="color:var(--muted)">Soal telah dihapus</em>'}</div>
+          <div style="display:flex;gap:4px;flex-shrink:0">
+            <button class="btn btn-sm ${isCorrect?'btn-primary':'btn-outline'}" onclick="correctToggle('${qId}',true)" style="padding:4px 10px;font-size:.8rem" ${!isCorrect?'':'disabled'}><i class="fa-solid fa-check"></i> Benar</button>
+            <button class="btn btn-sm ${!isCorrect?'btn-danger':'btn-outline'}" onclick="correctToggle('${qId}',false)" style="padding:4px 10px;font-size:.8rem" ${isCorrect?'':'disabled'}><i class="fa-solid fa-xmark"></i> Salah</button>
+          </div>
+        </div>`;
+
+      if (q && q.type === 'mcq' && q.options) {
+        qHtml += `<div style="display:grid;gap:4px">${q.options.map((opt, oi) => {
+          const selected = oi === ans;
+          const isCorrectOpt = oi === q.correctIndex;
+          let cls = 'padding:6px 10px;border-radius:6px;font-size:.85rem';
+          if (selected && isCorrectOpt) cls += ';background:#d4edda;color:#155724;border:1px solid #c3e6cb';
+          else if (selected) cls += ';background:#fff3cd;color:#856404;border:1px solid #ffeeba';
+          else if (isCorrectOpt) cls += ';background:#e2f0d9;color:#2d5a1e;border:1px solid #c8e6b3';
+          else cls += ';background:transparent;color:var(--muted)';
+          const icon = selected ? (isCorrectOpt ? '✓' : '✗') : (isCorrectOpt ? '✓' : '');
+          return `<div style="${cls}">${icon ? `<strong>${icon}</strong> ` : ''}${opt}</div>`;
+        }).join('')}</div>`;
+      } else {
+        qHtml += `<div style="padding:8px 12px;background:var(--white);border-radius:6px;font-size:.85rem;border:1px solid var(--line)">${ans || '<em style="color:var(--muted)">Tidak dijawab</em>'}</div>`;
+      }
+      qHtml += `</div>`;
+    });
+
+    const body = `
+      <div style="margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--line)">
+        <strong>${a.name}</strong> — ${a.gugus||'-'}<br>
+        <span style="color:var(--muted)">Set: ${a.quizSet} | ${qIds.length} soal</span>
+      </div>
+      <div style="max-height:50vh;overflow-y:auto;margin-bottom:16px">${qHtml}</div>
+      <div style="padding-top:14px;border-top:2px solid var(--line);display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <span style="font-weight:600">Benar: ${answered}/${qIds.length}</span>
+          <span style="color:var(--muted)">|</span>
+          <span>Skor otomatis: <strong>${autoScore}</strong></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <label style="font-weight:600">Atur nilai manual:</label>
+          <input type="number" id="manualScore" min="0" max="100" value="${autoScore}" style="width:80px;padding:8px 12px;border:2px solid var(--line);border-radius:8px;font-size:1rem;text-align:center">
+          <span style="font-size:.85rem;color:var(--muted)">/ 100</span>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:6px">
+          <button class="btn btn-primary" id="btnSaveGrade"><i class="fa-solid fa-floppy-disk"></i> Simpan Nilai</button>
+          <button class="btn btn-outline" onclick="hideModal('modal')">Batal</button>
+        </div>
+      </div>`;
+
+    modalBox.innerHTML = `<div class="modal-head"><h3>Koreksi Jawaban</h3><button class="modal-close" onclick="hideModal('modal')">&times;</button></div><div class="modal-body">${body}</div>`;
+    showModal('modal');
+
+    document.getElementById('manualScore').oninput = function() {
+      const v = +this.value;
+      if (v > 100) this.value = 100;
+      if (v < 0) this.value = 0;
+    };
+
+    document.getElementById('btnSaveGrade').onclick = async () => {
+      const manualInput = document.getElementById('manualScore');
+      const finalScore = Math.min(100, Math.max(0, Math.round(+manualInput.value || 0)));
+      document.getElementById('btnSaveGrade').disabled = true;
+      document.getElementById('btnSaveGrade').innerHTML = '<span class="spinner"></span> Menyimpan...';
+      try {
+        await updateDoc(doc(db, 'answers', id), {
+          finalScore,
+          gradedAt: serverTimestamp(),
+          gradingDetail: { correctMap: correct, correctCount: answered, totalQuestions: qIds.length }
+        });
+        hideModal('modal');
+        toast('Nilai berhasil disimpan', { type: 'success' });
+      } catch (e) {
+        toast('Gagal menyimpan: ' + e.message, { type: 'error' });
+        document.getElementById('btnSaveGrade').disabled = false;
+        document.getElementById('btnSaveGrade').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Simpan Nilai';
+      }
+    };
+  };
+
+  window.correctToggle = (qId, val) => {
+    correct[qId] = val;
+    renderModal();
+  };
+
+  renderModal();
 };
 
 // ===== Absensi + Analitik =====
