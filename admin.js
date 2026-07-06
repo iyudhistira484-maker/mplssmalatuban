@@ -236,7 +236,6 @@ async function pageSoal() {
       <div class="panel-head">
         <h3><i class="fa-solid fa-file-pen" style="color:var(--blue);margin-right:6px"></i>Kelola Soal · ${items.length} total</h3>
         <div class="actions">
-          <button class="btn btn-outline" id="addQ"><i class="fa-solid fa-plus"></i> Tambah Satu</button>
           <button class="btn btn-primary" id="addBulk"><i class="fa-solid fa-layer-group"></i> Tambah Banyak Soal</button>
         </div>
       </div>
@@ -245,7 +244,6 @@ async function pageSoal() {
         <tbody>${groupRows || `<tr><td colspan="5" class="empty"><i class="fa-solid fa-inbox"></i><p>Belum ada soal. Klik "Tambah Banyak Soal" untuk mulai.</p></td></tr>`}</tbody>
       </table></div>
     </div>`;
-  document.getElementById('addQ').onclick = openQModal;
   document.getElementById('addBulk').onclick = openBulkModal;
 }
 
@@ -265,44 +263,6 @@ window.delSet = async (setName) => {
     loadPage('soal');
   } catch(e) { toast(e.message, { type:'error' }); }
 };
-
-function openQModal() {
-  modalBox.innerHTML = `
-    <div class="modal-head"><h3><i class="fa-solid fa-plus"></i> Tambah Satu Soal</h3><button class="icon-btn" data-close="modal"><i class="fa-solid fa-xmark"></i></button></div>
-    <div class="modal-body">
-      <div class="field"><label>Set Soal</label><div class="ctrl"><i class="fa-solid fa-folder"></i><input id="qSet" placeholder="Contoh: Pengenalan Sekolah" required></div></div>
-      <div class="field"><label>Tipe</label><div class="ctrl"><i class="fa-solid fa-list"></i>
-        <select id="qType"><option value="mcq">Pilihan Ganda</option><option value="text">Isian Singkat</option></select></div></div>
-      <div class="field"><label>Pertanyaan</label><textarea id="qText" placeholder="Tulis pertanyaan..."></textarea></div>
-      <div id="mcqArea">
-        <div class="field"><label>Pilihan (pisahkan dengan baris baru)</label><textarea id="qOpts" placeholder="Pilihan A&#10;Pilihan B&#10;Pilihan C&#10;Pilihan D"></textarea></div>
-        <div class="field"><label>Index Jawaban Benar (mulai 0 untuk A)</label><div class="ctrl"><i class="fa-solid fa-check"></i><input type="number" id="qCor" min="0" value="0"></div></div>
-      </div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-ghost" data-close="modal">Batal</button>
-      <button class="btn btn-primary" id="saveQ"><i class="fa-solid fa-save"></i> Simpan</button>
-    </div>`;
-  showModal('modal');
-  document.getElementById('qType').onchange = (e) => {
-    document.getElementById('mcqArea').style.display = e.target.value==='mcq'?'block':'none';
-  };
-  document.getElementById('saveQ').onclick = async () => {
-    const data = {
-      quizSet: document.getElementById('qSet').value.trim() || 'Umum',
-      type: document.getElementById('qType').value,
-      text: document.getElementById('qText').value.trim(),
-      createdAt: serverTimestamp()
-    };
-    if (!data.text) return toast('Pertanyaan kosong', { type:'warning' });
-    if (data.type==='mcq') {
-      data.options = document.getElementById('qOpts').value.split('\n').map(s=>s.trim()).filter(Boolean);
-      data.correctIndex = +document.getElementById('qCor').value;
-    }
-    try { await addDoc(collection(db,'questions'), data); hideModal('modal'); toast('Soal ditambahkan', { type:'success' }); loadPage('soal'); }
-    catch(e) { toast(e.message, { type:'error' }); }
-  };
-}
 
 // ===== Bulk question creator =====
 let bulkCounter = 0;
