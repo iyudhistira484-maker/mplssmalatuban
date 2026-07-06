@@ -228,7 +228,7 @@ function stopCam() {
 async function saveAttendance(extra) {
   const today = new Date().toISOString().slice(0,10);
   await setDoc(doc(db, 'attendance', `${profile.uid}_${today}`), {
-    userId: profile.uid, name: profile.name, gugus: profile.gugus, kelas: profile.kelas,
+    userId: profile.uid, name: profile.name, gugus: profile.gugus, kelas: profile.kelas || null,
     nis: profile.nis || null,
     date: today,
     status: extra.status,
