@@ -953,17 +953,28 @@ async function pageAudit() {
     </div>
 
     <div class="panel" style="margin-top:18px">
-      <div class="panel-head"><h3>Riwayat Pelanggaran (terbaru)</h3></div>
+      <div class="panel-head"><h3>Riwayat Pelanggaran (terbaru)</h3>
+        <div class="actions"><select id="fGugusAudit" style="padding:8px 12px;border:1px solid var(--line);border-radius:10px"><option value="">Semua Gugus</option>${SCHOOL_CONFIG.groups.map(g=>`<option>${g}</option>`).join('')}</select></div>
+      </div>
       <div class="table-wrap"><table class="tbl">
         <thead><tr><th>Waktu</th><th>Siswa</th><th>Gugus</th><th>Set Soal</th><th>Tipe</th><th>Pesan</th><th>Penalti</th></tr></thead>
-        <tbody>${items.slice(0,200).map(l => {
-          const t = l.createdAt?.seconds ? new Date(l.createdAt.seconds*1000).toLocaleString('id-ID') : '-';
-          return `<tr><td><small>${t}</small></td><td><strong>${l.name||'-'}</strong></td><td><span class="badge blue">${l.gugus||'-'}</span></td><td>${l.quizSet||'-'}</td><td><code style="font-size:11px">${l.type}</code></td><td>${l.message||''}</td><td><span class="badge red">-${l.penalty||0}</span></td></tr>`;
-        }).join('') || `<tr><td colspan="7" class="empty">Belum ada log</td></tr>`}</tbody>
+        <tbody id="tbodyAudit"></tbody>
       </table></div>
     </div>`;
 
   window.__auditItems = items;
+
+  const renderAudit = (filterG='') => {
+    const tbody = document.getElementById('tbodyAudit');
+    const list = filterG ? items.filter(l => l.gugus===filterG) : items;
+    tbody.innerHTML = list.slice(0,200).map(l => {
+      const t = l.createdAt?.seconds ? new Date(l.createdAt.seconds*1000).toLocaleString('id-ID') : '-';
+      return `<tr><td><small>${t}</small></td><td><strong>${l.name||'-'}</strong></td><td><span class="badge blue">${l.gugus||'-'}</span></td><td>${l.quizSet||'-'}</td><td><code style="font-size:11px">${l.type}</code></td><td>${l.message||''}</td><td><span class="badge red">-${l.penalty||0}</span></td></tr>`;
+    }).join('') || `<tr><td colspan="7" class="empty">Belum ada log</td></tr>`;
+  };
+  renderAudit();
+  const sel = document.getElementById('fGugusAudit');
+  if (sel) sel.onchange = e => renderAudit(e.target.value);
 
   const _btnRA = document.getElementById('btnResetAudit');
   if (_btnRA) _btnRA.onclick = () => window.resetAllAudit();
