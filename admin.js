@@ -526,7 +526,7 @@ async function pageJawaban() {
         </div>
       </div>
       <div class="table-wrap"><table class="tbl" id="tblA">
-        <thead><tr><th>Siswa</th><th>Gugus</th><th>Set</th><th>Skor Auto</th><th>Pelanggaran</th><th>Nilai Akhir</th><th>Aksi</th></tr></thead>
+        <thead><tr><th>Siswa</th><th>Gugus</th><th>Set</th><th>Pelanggaran</th><th>Nilai Akhir</th><th>Aksi</th></tr></thead>
         <tbody></tbody>
       </table></div>
     </div>`;
@@ -541,14 +541,14 @@ async function pageJawaban() {
       <td><strong>${a.name}</strong><br><small style="color:var(--muted)">${a.kelas||''}</small></td>
       <td><span class="badge blue">${a.gugus||'-'}</span></td>
       <td>${a.quizSet}</td>
-      <td>${a.autoScore||0}/${a.maxAutoScore||0}</td>
+      <td>—</td>
       <td>${a.violations ? `<span class="badge red">${a.violations}</span>` : '<span class="badge green">0</span>'}</td>
       <td>${a.finalScore!=null?`<strong>${a.finalScore}</strong>`:'<span class="badge gold">Belum</span>'}</td>
       <td>
         <button class="btn btn-ghost" onclick="window.viewAnswers('${a.id}')" title="Lihat jawaban siswa"><i class="fa-solid fa-eye"></i></button>
-        <button class="btn btn-outline" onclick="window.gradeA('${a.id}', ${a.autoScore||0})"><i class="fa-solid fa-pen"></i> Nilai</button>
+        <button class="btn btn-outline" onclick="window.gradeA('${a.id}')"><i class="fa-solid fa-pen"></i> Nilai</button>
       </td>
-    </tr>`).join('') || `<tr><td colspan="8" class="empty">Belum ada jawaban</td></tr>`;
+    </tr>`).join('') || `<tr><td colspan="7" class="empty">Belum ada jawaban</td></tr>`;
   };
   pageUnsubscribe = onSnapshot(collection(db, 'answers'), (snap) => {
     snap.docChanges().forEach(change => {
@@ -574,7 +574,7 @@ async function pageJawaban() {
     let html = `
       <div style="margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--line)">
         <strong>${a.name}</strong> — ${a.kelas||'-'} — ${a.gugus||'-'}<br>
-        <span style="color:var(--muted)">Set: ${a.quizSet} | Skor: ${a.autoScore||0}/${a.maxAutoScore||0} | ${a.finalScore!=null?'Nilai: '+a.finalScore:'<span class="badge gold">Belum dinilai</span>'}</span>
+        <span style="color:var(--muted)">Set: ${a.quizSet} | ${a.finalScore!=null?'Nilai: '+a.finalScore:'<span class="badge gold">Belum dinilai</span>'}</span>
       </div>
       <div style="max-height:60vh;overflow-y:auto">`;
     qIds.forEach((qId, i) => {
@@ -604,8 +604,8 @@ async function pageJawaban() {
     showModal('modal');
   };
 }
-window.gradeA = (id, suggested) => {
-  const v = prompt('Masukkan nilai akhir (0-100):', suggested);
+window.gradeA = (id) => {
+  const v = prompt('Masukkan nilai akhir (0-100):');
   if (v == null) return;
   const n = +v; if (isNaN(n) || n<0 || n>100) return toast('Nilai tidak valid', {type:'error'});
   updateDoc(doc(db,'answers',id), { finalScore:n, gradedAt: serverTimestamp() })
