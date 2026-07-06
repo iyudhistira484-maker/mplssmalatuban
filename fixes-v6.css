@@ -139,3 +139,11 @@ body.exam-mode [data-role="notif-bell"]{
 body.exam-mode{
   padding-bottom: 0 !important;
 }
+
+/* ========================================================
+   Star rating — pilih rating 1-5 buat OSIS
+   ======================================================== */
+.stars{ display:flex; justify-content:center; gap:8px; margin:16px 0; }
+.stars i{ font-size:32px; color:var(--line,#ddd); cursor:pointer; transition:color .2s, transform .15s; }
+.stars i:hover{ transform:scale(1.2); color:#f5b342; }
+.stars i.on{ color:#f5b342; text-shadow:0 0 6px rgba(245,179,66,.4); }
