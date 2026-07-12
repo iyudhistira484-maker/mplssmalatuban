@@ -35,6 +35,7 @@ async function writeAuditLog({ profile, type, message, quizSet, penalty, meta = 
 }
 
 let profile;
+let pageUnsubscribe = null;
 const content = document.getElementById('content');
 const pageTitle = document.getElementById('pageTitle');
 
@@ -83,6 +84,7 @@ function safePage(name, fn) {
 }
 
 function loadPage(page) {
+  if (pageUnsubscribe) { pageUnsubscribe(); pageUnsubscribe = null; }
   pageTitle.textContent = titles[page] || page;
   content.innerHTML = '<div class="empty"><i class="fa-solid fa-spinner fa-spin"></i><p>Memuat...</p></div>';
   // sync bottom nav
@@ -504,14 +506,15 @@ async function pageMateri() {
 
 // ===== Jadwal =====
 const DAY_ORDER = { Senin:0, Selasa:1, Rabu:2, Kamis:3, Jumat:4 };
+const DAY_NAMES = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+const MONTH_NAMES = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+
 function daySortKey(dayStr) {
   const name = (dayStr||'').split(',')[0].trim();
   return DAY_ORDER[name] !== undefined ? DAY_ORDER[name] : 99;
 }
 
-async function pageJadwal() {
-  const snap = await getDocs(collection(db, 'schedule'));
-  const items = []; snap.forEach(d => items.push({ id: d.id, ...d.data() }));
+function renderJadwal(items) {
   if (!items.length) return content.innerHTML = emptyState('Belum ada jadwal kegiatan', 'Akan diperbarui oleh admin.');
   const groups = {};
   items.forEach(s => {
@@ -532,6 +535,17 @@ async function pageJadwal() {
       </div>`;
   });
   content.innerHTML = html;
+}
+
+function pageJadwal() {
+  pageUnsubscribe = onSnapshot(collection(db, 'schedule'), (snap) => {
+    const items = [];
+    snap.forEach(d => items.push({ id: d.id, ...d.data() }));
+    renderJadwal(items);
+  }, (err) => {
+    console.error('jadwal snapshot error', err);
+    content.innerHTML = emptyState('Gagal memuat jadwal', err.message);
+  });
 }
 
 // ===== Rating OSIS =====

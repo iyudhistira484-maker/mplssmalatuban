@@ -428,14 +428,20 @@ window.delM = async (id) => {
 
 // ===== Schedule CRUD =====
 const DAY_ORDER = { Senin:0, Selasa:1, Rabu:2, Kamis:3, Jumat:4 };
+const DAY_NAMES = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+const MONTH_NAMES = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+
 function daySortKey(dayStr) {
   const name = (dayStr||'').split(',')[0].trim();
   return DAY_ORDER[name] !== undefined ? DAY_ORDER[name] : 99;
 }
+function fmtDate(date) {
+  return `${DAY_NAMES[date.getDay()]}, ${date.getDate()} ${MONTH_NAMES[date.getMonth()]} ${date.getFullYear()}`;
+}
 
-async function pageSchedule() {
-  const snap = await getDocs(collection(db, 'schedule'));
-  const items=[]; snap.forEach(d=>items.push({id:d.id,...d.data()}));
+let scheduleItems = [];
+
+function renderSchedule(items) {
   const groups = {};
   items.forEach(s => {
     const k = s.day || 'Lainnya';
@@ -450,68 +456,117 @@ async function pageSchedule() {
       <div class="panel" style="margin-top:8px">
         <div class="panel-head" style="border-bottom:2px solid var(--secondary)"><h4 style="margin:0;font-family:var(--font-display);color:var(--secondary)"><i class="fa-solid fa-calendar-day"></i> ${escapeHtml(day)}</h4></div>
         <div class="table-wrap"><table class="tbl">
-          <thead><tr><th style="width:40px">No</th><th>Waktu</th><th>Kegiatan</th><th>Lokasi</th><th style="width:60px"></th></tr></thead>
-          <tbody>${list.map((s,i) => `<tr><td style="color:var(--muted);font-family:var(--font-mono)">${i+1}</td><td>${s.time||''}</td><td>${escapeHtml(s.title||'')}</td><td>${escapeHtml(s.location||'-')}</td><td><button class="btn btn-danger" onclick="window.delS('${s.id}')" title="Hapus"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('')}</tbody>
+          <thead><tr><th style="width:40px">No</th><th>Waktu</th><th>Kegiatan</th><th>Lokasi</th><th style="width:100px"></th></tr></thead>
+          <tbody>${list.map((s,i) => `<tr><td style="color:var(--muted);font-family:var(--font-mono)">${i+1}</td><td>${escapeHtml(s.time||'')}</td><td>${escapeHtml(s.title||'')}</td><td>${escapeHtml(s.location||'-')}</td><td><div style="display:flex;gap:4px"><button class="btn btn-outline" onclick="window.editS('${s.id}')" title="Edit" style="padding:6px 10px;font-size:12px"><i class="fa-solid fa-pen"></i></button><button class="btn btn-danger" onclick="window.delS('${s.id}')" title="Hapus" style="padding:6px 10px;font-size:12px"><i class="fa-solid fa-trash"></i></button></div></td></tr>`).join('')}</tbody>
         </table></div>
       </div>`;
   });
   if (!sortedDays.length) html += `<div class="panel"><div class="empty"><i class="fa-solid fa-inbox"></i><p>Belum ada jadwal. Klik "Tambah" untuk mulai.</p></div></div>`;
   content.innerHTML = html;
-  document.getElementById('addS').onclick = () => {
-    let rowCount = 0;
-    const rowsEl = () => document.getElementById('sRows');
-    const addRow = (time='', title='', location='') => {
-      const i = rowCount++;
-      const d = document.createElement('div');
-      d.className = 's-row';
-      d.id = 'sRow'+i;
-      d.innerHTML = `
-        <div style="display:flex;gap:8px;align-items:end;flex-wrap:wrap;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--line)">
-          <div class="field" style="flex:1;min-width:120px"><label>Waktu</label><div class="ctrl"><i class="fa-solid fa-clock"></i><input class="sT" placeholder="07.00 - 08.00" value="${time.replace(/"/g,'&quot;')}"></div></div>
-          <div class="field" style="flex:2;min-width:180px"><label>Nama Kegiatan</label><div class="ctrl"><i class="fa-solid fa-bookmark"></i><input class="sN" value="${title.replace(/"/g,'&quot;')}"></div></div>
-          <div class="field" style="flex:1;min-width:120px"><label>Lokasi</label><div class="ctrl"><i class="fa-solid fa-location-dot"></i><input class="sL" placeholder="Aula / R. Kelas" value="${location.replace(/"/g,'&quot;')}"></div></div>
-          <button class="btn btn-danger" style="flex-shrink:0;margin-bottom:2px" onclick="this.closest('.s-row').remove()"><i class="fa-solid fa-xmark"></i></button>
-        </div>`;
-      rowsEl().appendChild(d);
-    };
-    modalBox.innerHTML = `
-      <div class="modal-head"><h3>Tambah Jadwal (Banyak)</h3><button class="icon-btn" data-close="modal"><i class="fa-solid fa-xmark"></i></button></div>
-      <div class="modal-body">
-        <div class="field"><label>Hari/Tanggal</label><div class="ctrl"><i class="fa-solid fa-calendar"></i><input id="sD" placeholder="Senin / 22 Jul 2025"></div></div>
-        <div style="margin-top:12px"><label style="display:block;font-weight:600;margin-bottom:6px">Daftar Kegiatan</label>
-        <div id="sRows"></div>
-        <button class="btn btn-ghost" id="addRowBtn" style="width:100%"><i class="fa-solid fa-plus"></i> Tambah Baris</button></div>
-      </div>
-      <div class="modal-foot"><button class="btn btn-ghost" data-close="modal">Batal</button><button class="btn btn-primary" id="ss">Simpan Semua</button></div>`;
-    addRow();
-    document.getElementById('addRowBtn').onclick = () => addRow();
-    showModal('modal');
-    document.getElementById('ss').onclick = async () => {
-      const day = document.getElementById('sD').value.trim();
-      if (!day) return toast('Hari/Tanggal wajib diisi', { type:'warning' });
-      const rowEls = rowsEl().querySelectorAll('.s-row');
-      const batch = [];
-      let hasData = false;
-      rowEls.forEach(el => {
-        const time = el.querySelector('.sT').value.trim();
-        const title = el.querySelector('.sN').value.trim();
-        const location = el.querySelector('.sL').value.trim();
-        if (!title) return;
-        hasData = true;
-        batch.push({ day, time, title, location, createdAt: serverTimestamp() });
-      });
-      if (!hasData) return toast('Minimal 1 kegiatan harus diisi', { type:'warning' });
-      try {
-        for (const data of batch) await addDoc(collection(db, 'schedule'), data);
-        hideModal('modal'); toast(`${batch.length} kegiatan disimpan`, { type:'success' });
-        loadPage('jadwal');
-      } catch(e) { toast(e.message, { type:'error' }); }
-    };
+  document.getElementById('addS').onclick = openAddModal;
+}
+
+async function pageSchedule() {
+  scheduleItems = [];
+  pageUnsubscribe = onSnapshot(collection(db, 'schedule'), (snap) => {
+    scheduleItems = [];
+    snap.forEach(d => scheduleItems.push({ id: d.id, ...d.data() }));
+    renderSchedule(scheduleItems);
+  }, (err) => {
+    console.error('schedule snapshot error', err);
+    renderError(err, () => loadPage('jadwal'));
+  });
+}
+
+function openAddModal() {
+  let rowCount = 0;
+  const rowsEl = () => document.getElementById('sRows');
+  const addRow = (time='', title='', location='') => {
+    const i = rowCount++;
+    const d = document.createElement('div');
+    d.className = 's-row';
+    d.id = 'sRow'+i;
+    d.innerHTML = `
+      <div style="display:flex;gap:8px;align-items:end;flex-wrap:wrap;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--line)">
+        <div class="field" style="flex:1;min-width:120px"><label>Waktu</label><div class="ctrl"><i class="fa-solid fa-clock"></i><input class="sT" placeholder="07.00 - 08.00" value="${time.replace(/"/g,'&quot;')}"></div></div>
+        <div class="field" style="flex:2;min-width:180px"><label>Nama Kegiatan</label><div class="ctrl"><i class="fa-solid fa-bookmark"></i><input class="sN" value="${title.replace(/"/g,'&quot;')}"></div></div>
+        <div class="field" style="flex:1;min-width:120px"><label>Lokasi</label><div class="ctrl"><i class="fa-solid fa-location-dot"></i><input class="sL" placeholder="Aula / R. Kelas" value="${location.replace(/"/g,'&quot;')}"></div></div>
+        <button class="btn btn-danger" style="flex-shrink:0;margin-bottom:2px" onclick="this.closest('.s-row').remove()"><i class="fa-solid fa-xmark"></i></button>
+      </div>`;
+    rowsEl().appendChild(d);
+  };
+  const today = new Date();
+  const dayOpts = Object.keys(DAY_ORDER).map(d => `<option value="${d}"${d==='Senin'?' selected':''}>${d}</option>`).join('');
+  modalBox.innerHTML = `
+    <div class="modal-head"><h3>Tambah Jadwal (Banyak)</h3><button class="icon-btn" data-close="modal"><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-body">
+      <div class="field"><label>Hari</label><div class="ctrl"><i class="fa-solid fa-calendar"></i><select id="sDay" style="flex:1;padding:10px 14px;border:1px solid var(--line);border-radius:10px;font-size:14px">${dayOpts}</select></div></div>
+      <div class="field"><label>Tanggal</label><div class="ctrl"><i class="fa-solid fa-calendar-check"></i><input type="date" id="sDate" style="flex:1;padding:10px 14px;border:1px solid var(--line);border-radius:10px;font-size:14px"></div></div>
+      <div style="margin-top:12px"><label style="display:block;font-weight:600;margin-bottom:6px">Daftar Kegiatan</label>
+      <div id="sRows"></div>
+      <button class="btn btn-ghost" id="addRowBtn" style="width:100%"><i class="fa-solid fa-plus"></i> Tambah Baris</button></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" data-close="modal">Batal</button><button class="btn btn-primary" id="ss">Simpan Semua</button></div>`;
+  addRow();
+  document.getElementById('addRowBtn').onclick = () => addRow();
+  showModal('modal');
+  document.getElementById('ss').onclick = async () => {
+    const dayName = document.getElementById('sDay').value;
+    const dateVal = document.getElementById('sDate').value;
+    if (!dateVal) return toast('Tanggal wajib diisi', { type:'warning' });
+    const d = new Date(dateVal + 'T00:00:00');
+    const day = `${dayName}, ${d.getDate()} ${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`;
+    const rowEls = rowsEl().querySelectorAll('.s-row');
+    const batch = [];
+    let hasData = false;
+    rowEls.forEach(el => {
+      const time = el.querySelector('.sT').value.trim();
+      const title = el.querySelector('.sN').value.trim();
+      const location = el.querySelector('.sL').value.trim();
+      if (!title) return;
+      hasData = true;
+      batch.push({ day, time, title, location, createdAt: serverTimestamp() });
+    });
+    if (!hasData) return toast('Minimal 1 kegiatan harus diisi', { type:'warning' });
+    try {
+      for (const data of batch) await addDoc(collection(db, 'schedule'), data);
+      hideModal('modal'); toast(`${batch.length} kegiatan disimpan`, { type:'success' });
+    } catch(e) { toast(e.message, { type:'error' }); }
   };
 }
+
+window.editS = (id) => {
+  const item = scheduleItems.find(x => x.id === id);
+  if (!item) return toast('Data tidak ditemukan', { type:'error' });
+  modalBox.innerHTML = `
+    <div class="modal-head"><h3>Edit Jadwal</h3><button class="icon-btn" data-close="modal"><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-body">
+      <div class="field"><label>Hari/Tanggal</label><div class="ctrl"><i class="fa-solid fa-calendar"></i><input id="eDay" value="${escapeAttr(item.day||'')}" style="flex:1;padding:10px 14px;border:1px solid var(--line);border-radius:10px;font-size:14px"></div></div>
+      <div class="field"><label>Waktu</label><div class="ctrl"><i class="fa-solid fa-clock"></i><input id="eTime" value="${escapeAttr(item.time||'')}" style="flex:1;padding:10px 14px;border:1px solid var(--line);border-radius:10px;font-size:14px"></div></div>
+      <div class="field"><label>Nama Kegiatan</label><div class="ctrl"><i class="fa-solid fa-bookmark"></i><input id="eTitle" value="${escapeAttr(item.title||'')}" style="flex:1;padding:10px 14px;border:1px solid var(--line);border-radius:10px;font-size:14px"></div></div>
+      <div class="field"><label>Lokasi</label><div class="ctrl"><i class="fa-solid fa-location-dot"></i><input id="eLoc" value="${escapeAttr(item.location||'')}" style="flex:1;padding:10px 14px;border:1px solid var(--line);border-radius:10px;font-size:14px"></div></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" data-close="modal">Batal</button><button class="btn btn-primary" id="saveEdit"><i class="fa-solid fa-floppy-disk"></i> Simpan</button></div>`;
+  showModal('modal');
+  document.getElementById('saveEdit').onclick = async () => {
+    const payload = {
+      day: document.getElementById('eDay').value.trim(),
+      time: document.getElementById('eTime').value.trim(),
+      title: document.getElementById('eTitle').value.trim(),
+      location: document.getElementById('eLoc').value.trim(),
+      updatedAt: serverTimestamp()
+    };
+    if (!payload.day || !payload.time || !payload.title) return toast('Hari, waktu, dan kegiatan wajib diisi', { type:'warning' });
+    try {
+      await updateDoc(doc(db, 'schedule', id), payload);
+      hideModal('modal'); toast('Jadwal diperbarui', { type:'success' });
+    } catch(e) { toast(e.message, { type:'error' }); }
+  };
+};
+
 window.delS = async (id) => {
-  if(!confirm('Hapus?')) return;
-  try { await deleteDoc(doc(db,'schedule',id)); toast('Dihapus',{type:'success'}); loadPage('jadwal'); }
+  if(!confirm('Hapus jadwal ini?')) return;
+  try { await deleteDoc(doc(db,'schedule',id)); toast('Dihapus',{type:'success'}); }
   catch(e) { toast(e.message,{type:'error'}); }
 };
 
