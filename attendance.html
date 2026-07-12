@@ -121,8 +121,8 @@ document.getElementById('btnGps').addEventListener('click', () => {
     resolved = true;
     btnLoading(btn, false);
     statusEl.textContent = 'Waktu habis. Pastikan GPS/lokasi aktif di perangkat.';
-    toast('GPS timeout. Coba lagi atau gunakan HP/lokasi dengan sinyal terbuka.', { type:'error' });
-  }, 20000);
+    toast('GPS timeout. Pastikan GPS/lokasi aktif, coba di luar ruangan.', { type:'error' });
+  }, 30000);
 
   const onSuccess = async (pos) => {
     if (resolved) return;
@@ -157,7 +157,7 @@ document.getElementById('btnGps').addEventListener('click', () => {
     statusEl.textContent = 'Gagal dapatkan lokasi. Coba lagi.';
   };
 
-  navigator.geolocation.getCurrentPosition(onSuccess, onError, { enableHighAccuracy: false, timeout: 10000 });
+  navigator.geolocation.getCurrentPosition(onSuccess, onError, { enableHighAccuracy: false, timeout: 25000 });
 });
 
 // ===== Face Verification (Izin/Sakit) =====
