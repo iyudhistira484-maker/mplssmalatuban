@@ -535,9 +535,13 @@ function openAddModal() {
   };
 }
 
-window.editS = (id) => {
-  const item = scheduleItems.find(x => x.id === id);
-  if (!item) return toast('Data tidak ditemukan', { type:'error' });
+window.editS = async (id) => {
+  let item = scheduleItems.find(x => x.id === id);
+  if (!item) {
+    const snap = await getDoc(doc(db, 'schedule', id));
+    if (!snap.exists()) return toast('Data tidak ditemukan', { type:'error' });
+    item = { id: snap.id, ...snap.data() };
+  }
   modalBox.innerHTML = `
     <div class="modal-head"><h3>Edit Jadwal</h3><button class="icon-btn" data-close="modal"><i class="fa-solid fa-xmark"></i></button></div>
     <div class="modal-body">
