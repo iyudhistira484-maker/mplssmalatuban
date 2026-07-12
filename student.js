@@ -503,18 +503,35 @@ async function pageMateri() {
 }
 
 // ===== Jadwal =====
+const DAY_ORDER = { Senin:0, Selasa:1, Rabu:2, Kamis:3, Jumat:4 };
+function daySortKey(dayStr) {
+  const name = (dayStr||'').split(',')[0].trim();
+  return DAY_ORDER[name] !== undefined ? DAY_ORDER[name] : 99;
+}
+
 async function pageJadwal() {
   const snap = await getDocs(collection(db, 'schedule'));
   const items = []; snap.forEach(d => items.push({ id: d.id, ...d.data() }));
   if (!items.length) return content.innerHTML = emptyState('Belum ada jadwal kegiatan', 'Akan diperbarui oleh admin.');
-  content.innerHTML = `
-    <div class="panel">
-      <div class="panel-head"><h3>Jadwal Kegiatan</h3></div>
-      <div class="table-wrap"><table class="tbl">
-        <thead><tr><th>Hari/Tanggal</th><th>Waktu</th><th>Kegiatan</th><th>Lokasi</th></tr></thead>
-        <tbody>${items.map(s => `<tr><td><strong>${s.day || ''}</strong></td><td>${s.time || ''}</td><td>${s.title || ''}</td><td>${s.location || '-'}</td></tr>`).join('')}</tbody>
-      </table></div>
-    </div>`;
+  const groups = {};
+  items.forEach(s => {
+    const k = s.day || 'Lainnya';
+    (groups[k] = groups[k] || []).push(s);
+  });
+  const sortedDays = Object.keys(groups).sort((a,b) => daySortKey(a) - daySortKey(b) || a.localeCompare(b));
+  let html = '';
+  sortedDays.forEach(day => {
+    const list = groups[day].sort((a,b) => (a.time||'').localeCompare(b.time||''));
+    html += `
+      <div class="panel" style="margin-top:8px">
+        <div class="panel-head" style="border-bottom:2px solid var(--secondary)"><h4 style="margin:0;font-family:var(--font-display);color:var(--secondary)"><i class="fa-solid fa-calendar-day"></i> ${escapeHtml(day)}</h4></div>
+        <div class="table-wrap"><table class="tbl">
+          <thead><tr><th style="width:40px">No</th><th>Waktu</th><th>Kegiatan</th><th>Lokasi</th></tr></thead>
+          <tbody>${list.map((s,i) => `<tr><td style="color:var(--muted);font-family:var(--font-mono)">${i+1}</td><td>${escapeHtml(s.time||'')}</td><td>${escapeHtml(s.title||'')}</td><td>${escapeHtml(s.location||'-')}</td></tr>`).join('')}</tbody>
+        </table></div>
+      </div>`;
+  });
+  content.innerHTML = html;
 }
 
 // ===== Rating OSIS =====

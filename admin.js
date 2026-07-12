@@ -427,18 +427,36 @@ window.delM = async (id) => {
 };
 
 // ===== Schedule CRUD =====
+const DAY_ORDER = { Senin:0, Selasa:1, Rabu:2, Kamis:3, Jumat:4 };
+function daySortKey(dayStr) {
+  const name = (dayStr||'').split(',')[0].trim();
+  return DAY_ORDER[name] !== undefined ? DAY_ORDER[name] : 99;
+}
+
 async function pageSchedule() {
   const snap = await getDocs(collection(db, 'schedule'));
   const items=[]; snap.forEach(d=>items.push({id:d.id,...d.data()}));
-  content.innerHTML = `
-    <div class="panel">
-      <div class="panel-head"><h3>Jadwal Kegiatan (${items.length})</h3>
-        <div class="actions"><button class="btn btn-primary" id="addS"><i class="fa-solid fa-plus"></i> Tambah</button></div></div>
-      <div class="table-wrap"><table class="tbl">
-        <thead><tr><th>Hari/Tanggal</th><th>Waktu</th><th>Kegiatan</th><th>Lokasi</th><th></th></tr></thead>
-        <tbody>${items.map(s=>`<tr><td>${s.day||''}</td><td>${s.time||''}</td><td>${s.title||''}</td><td>${s.location||'-'}</td><td><button class="btn btn-danger" onclick="window.delS('${s.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('') || `<tr><td colspan="5" class="empty">Kosong</td></tr>`}</tbody>
-      </table></div>
-    </div>`;
+  const groups = {};
+  items.forEach(s => {
+    const k = s.day || 'Lainnya';
+    (groups[k] = groups[k] || []).push(s);
+  });
+  const sortedDays = Object.keys(groups).sort((a,b) => daySortKey(a) - daySortKey(b) || a.localeCompare(b));
+  const total = items.length;
+  let html = `<div class="panel"><div class="panel-head"><h3>Jadwal Kegiatan (${total})</h3><div class="actions"><button class="btn btn-primary" id="addS"><i class="fa-solid fa-plus"></i> Tambah</button></div></div></div>`;
+  sortedDays.forEach(day => {
+    const list = groups[day].sort((a,b) => (a.time||'').localeCompare(b.time||''));
+    html += `
+      <div class="panel" style="margin-top:8px">
+        <div class="panel-head" style="border-bottom:2px solid var(--secondary)"><h4 style="margin:0;font-family:var(--font-display);color:var(--secondary)"><i class="fa-solid fa-calendar-day"></i> ${escapeHtml(day)}</h4></div>
+        <div class="table-wrap"><table class="tbl">
+          <thead><tr><th style="width:40px">No</th><th>Waktu</th><th>Kegiatan</th><th>Lokasi</th><th style="width:60px"></th></tr></thead>
+          <tbody>${list.map((s,i) => `<tr><td style="color:var(--muted);font-family:var(--font-mono)">${i+1}</td><td>${s.time||''}</td><td>${escapeHtml(s.title||'')}</td><td>${escapeHtml(s.location||'-')}</td><td><button class="btn btn-danger" onclick="window.delS('${s.id}')" title="Hapus"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('')}</tbody>
+        </table></div>
+      </div>`;
+  });
+  if (!sortedDays.length) html += `<div class="panel"><div class="empty"><i class="fa-solid fa-inbox"></i><p>Belum ada jadwal. Klik "Tambah" untuk mulai.</p></div></div>`;
+  content.innerHTML = html;
   document.getElementById('addS').onclick = () => {
     let rowCount = 0;
     const rowsEl = () => document.getElementById('sRows');
