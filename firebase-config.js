@@ -17,8 +17,8 @@ export const firebaseConfig = {
 // === Konfigurasi Sekolah ===
 export const SCHOOL_CONFIG = {
   name: "SMA Negeri 5 Tuban",
-  lat: -6.9351542,
-  lng: 112.0568434,
+  lat: -6.9769223,
+  lng: 112.0619651,
   attendanceRadiusMeter: 300,
   groups: ["Gugus 1", "Gugus 2", "Gugus 3", "Gugus 4", "Gugus 5", "Gugus 6", "Gugus 7"]
 };
