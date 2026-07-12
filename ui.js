@@ -134,7 +134,7 @@
       nav.querySelectorAll('.mbn-item[data-page]').forEach(function(b) {
         b.classList.toggle('active', b.dataset.page === page);
       });
-      var sheetPages = ['jadwal','kegiatan','absensi','audit','rating','export','notif','nilai','info','profil'];
+      var sheetPages = ['jadwal','absensi','audit','rating','export','notif','nilai','info','profil'];
       if (sheetPages.indexOf(page) !== -1 && moreBtn) {
         nav.querySelectorAll('.mbn-item').forEach(function(b){ b.classList.remove('active'); });
         moreBtn.classList.add('active');

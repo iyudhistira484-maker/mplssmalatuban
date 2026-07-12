@@ -32,7 +32,7 @@ function setupNav() {
   }));
 }
 
-const titles = { overview:'Ringkasan', soal:'Kelola Soal', materi:'Kelola Materi', jadwal:'Kelola Jadwal', kegiatan:'Kelola Kegiatan', jawaban:'Jawaban Siswa', absensi:'Absensi & Analitik', audit:'Audit Log Pelanggaran', rating:'Rating OSIS', export:'Export Nilai (CSV)' };
+const titles = { overview:'Ringkasan', soal:'Kelola Soal', materi:'Kelola Materi', jadwal:'Jadwal Kegiatan', jawaban:'Jawaban Siswa', absensi:'Absensi & Analitik', audit:'Audit Log Pelanggaran', rating:'Rating OSIS', export:'Export Nilai (CSV)' };
 
 // Helper: render error panel + tombol retry agar tidak stuck "Memuat..."
 function renderError(err, retryFn) {
@@ -69,8 +69,7 @@ function loadPage(p) {
     overview: safePage('overview', pageOverview),
     soal:     safePage('soal',     pageSoal),
     materi:   safePage('materi',   pageMateri),
-    jadwal:   safePage('jadwal',   () => pageSchedule('schedule')),
-    kegiatan: safePage('kegiatan', () => pageSchedule('activities')),
+    jadwal:   safePage('jadwal',   pageSchedule),
     jawaban:  safePage('jawaban',  pageJawaban),
     absensi:  safePage('absensi',  pageAbsensi),
     audit:    safePage('audit',    pageAudit),
@@ -428,17 +427,16 @@ window.delM = async (id) => {
 };
 
 // ===== Schedule CRUD =====
-async function pageSchedule(coll) {
-  const isAct = coll==='activities';
-  const snap = await getDocs(collection(db, coll));
+async function pageSchedule() {
+  const snap = await getDocs(collection(db, 'schedule'));
   const items=[]; snap.forEach(d=>items.push({id:d.id,...d.data()}));
   content.innerHTML = `
     <div class="panel">
-      <div class="panel-head"><h3>${isAct?'Jadwal Kegiatan':'Jadwal Pelajaran'} (${items.length})</h3>
+      <div class="panel-head"><h3>Jadwal Kegiatan (${items.length})</h3>
         <div class="actions"><button class="btn btn-primary" id="addS"><i class="fa-solid fa-plus"></i> Tambah</button></div></div>
       <div class="table-wrap"><table class="tbl">
-        <thead><tr><th>Hari/Tanggal</th><th>Waktu</th><th>${isAct?'Kegiatan':'Mata Pelajaran'}</th><th>Lokasi</th><th></th></tr></thead>
-        <tbody>${items.map(s=>`<tr><td>${s.day||''}</td><td>${s.time||''}</td><td>${s.title||''}</td><td>${s.location||'-'}</td><td><button class="btn btn-danger" onclick="window.delS('${coll}','${s.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('') || `<tr><td colspan="5" class="empty">Kosong</td></tr>`}</tbody>
+        <thead><tr><th>Hari/Tanggal</th><th>Waktu</th><th>Kegiatan</th><th>Lokasi</th><th></th></tr></thead>
+        <tbody>${items.map(s=>`<tr><td>${s.day||''}</td><td>${s.time||''}</td><td>${s.title||''}</td><td>${s.location||'-'}</td><td><button class="btn btn-danger" onclick="window.delS('${s.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('') || `<tr><td colspan="5" class="empty">Kosong</td></tr>`}</tbody>
       </table></div>
     </div>`;
   document.getElementById('addS').onclick = () => {
@@ -452,14 +450,14 @@ async function pageSchedule(coll) {
       d.innerHTML = `
         <div style="display:flex;gap:8px;align-items:end;flex-wrap:wrap;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--line)">
           <div class="field" style="flex:1;min-width:120px"><label>Waktu</label><div class="ctrl"><i class="fa-solid fa-clock"></i><input class="sT" placeholder="07.00 - 08.00" value="${time.replace(/"/g,'&quot;')}"></div></div>
-          <div class="field" style="flex:2;min-width:180px"><label>${isAct?'Nama Kegiatan':'Mata Pelajaran'}</label><div class="ctrl"><i class="fa-solid fa-bookmark"></i><input class="sN" value="${title.replace(/"/g,'&quot;')}"></div></div>
+          <div class="field" style="flex:2;min-width:180px"><label>Nama Kegiatan</label><div class="ctrl"><i class="fa-solid fa-bookmark"></i><input class="sN" value="${title.replace(/"/g,'&quot;')}"></div></div>
           <div class="field" style="flex:1;min-width:120px"><label>Lokasi</label><div class="ctrl"><i class="fa-solid fa-location-dot"></i><input class="sL" placeholder="Aula / R. Kelas" value="${location.replace(/"/g,'&quot;')}"></div></div>
           <button class="btn btn-danger" style="flex-shrink:0;margin-bottom:2px" onclick="this.closest('.s-row').remove()"><i class="fa-solid fa-xmark"></i></button>
         </div>`;
       rowsEl().appendChild(d);
     };
     modalBox.innerHTML = `
-      <div class="modal-head"><h3>Tambah ${isAct?'Kegiatan':'Jadwal'} (Banyak)</h3><button class="icon-btn" data-close="modal"><i class="fa-solid fa-xmark"></i></button></div>
+      <div class="modal-head"><h3>Tambah Jadwal (Banyak)</h3><button class="icon-btn" data-close="modal"><i class="fa-solid fa-xmark"></i></button></div>
       <div class="modal-body">
         <div class="field"><label>Hari/Tanggal</label><div class="ctrl"><i class="fa-solid fa-calendar"></i><input id="sD" placeholder="Senin / 22 Jul 2025"></div></div>
         <div style="margin-top:12px"><label style="display:block;font-weight:600;margin-bottom:6px">Daftar Kegiatan</label>
@@ -486,16 +484,16 @@ async function pageSchedule(coll) {
       });
       if (!hasData) return toast('Minimal 1 kegiatan harus diisi', { type:'warning' });
       try {
-        for (const data of batch) await addDoc(collection(db, coll), data);
+        for (const data of batch) await addDoc(collection(db, 'schedule'), data);
         hideModal('modal'); toast(`${batch.length} kegiatan disimpan`, { type:'success' });
-        loadPage(isAct?'kegiatan':'jadwal');
+        loadPage('jadwal');
       } catch(e) { toast(e.message, { type:'error' }); }
     };
   };
 }
-window.delS = async (c,id) => {
+window.delS = async (id) => {
   if(!confirm('Hapus?')) return;
-  try { await deleteDoc(doc(db,c,id)); toast('Dihapus',{type:'success'}); loadPage(c==='activities'?'kegiatan':'jadwal'); }
+  try { await deleteDoc(doc(db,'schedule',id)); toast('Dihapus',{type:'success'}); loadPage('jadwal'); }
   catch(e) { toast(e.message,{type:'error'}); }
 };
 

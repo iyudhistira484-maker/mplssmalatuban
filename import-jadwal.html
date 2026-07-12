@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Import Jadwal MPLS — SMAN 5 Tuban</title>
+<link rel="icon" href="logo.png" type="image/svg+xml" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+<link rel="stylesheet" href="style.css" />
+<script type="importmap">
+{
+  "imports": {
+    "@firebase/app": "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",
+    "@firebase/auth": "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js",
+    "@firebase/firestore": "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"
+  }
+}
+</script>
+<style>
+body { font-family: 'Segoe UI', sans-serif; background: #f8f6f0; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; }
+.card { background: #fff; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,.08); padding: 32px; max-width: 640px; width: 100%; }
+.card h2 { margin: 0 0 6px; font-family: 'Playfair Display', serif; color: #1a1a2e; }
+.card p { color: #666; margin: 0 0 20px; }
+.btn { padding: 12px 24px; border: none; border-radius: 10px; cursor: pointer; font-size: 15px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; }
+.btn-primary { background: #c9a24a; color: #fff; }
+.btn-primary:hover { background: #b8923f; }
+.btn-primary:disabled { opacity: .6; cursor: not-allowed; }
+.btn-outline { background: transparent; border: 2px solid #c9a24a; color: #c9a24a; }
+.log { background: #f4f4f0; border-radius: 10px; padding: 16px; margin-top: 16px; max-height: 300px; overflow-y: auto; font-size: 13px; line-height: 1.6; }
+.log .ok { color: #16a34a; }
+.log .err { color: #dc2626; }
+.log .info { color: #2563eb; }
+.field { margin-bottom: 14px; }
+.field label { display: block; font-weight: 600; margin-bottom: 4px; color: #333; }
+.field input { width: 100%; padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; box-sizing: border-box; }
+.hidden { display: none; }
+.status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+.status-badge.green { background: #d4edda; color: #155724; }
+.status-badge.red { background: #f8d7da; color: #721c24; }
+.status-badge.blue { background: #dbeafe; color: #1e40af; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h2><i class="fa-solid fa-calendar-days" style="color:#c9a24a"></i> Import Jadwal MPLS</h2>
+  <p>Masuk sebagai admin untuk mengimpor jadwal 3 hari MPLS ke database.</p>
+
+  <div id="loginForm">
+    <div class="field"><label>Email Admin</label><input type="email" id="email" value="admin@sman5tuban.sch.id" placeholder="admin@school.com"></div>
+    <div class="field"><label>Password</label><input type="password" id="password" placeholder="Password"></div>
+    <button class="btn btn-primary" id="btnLogin"><i class="fa-solid fa-right-to-bracket"></i> Masuk</button>
+    <div id="loginError" style="color:#dc2626;font-size:13px;margin-top:8px"></div>
+  </div>
+
+  <div id="importSection" class="hidden">
+    <div style="margin-bottom:16px">
+      <span class="status-badge blue" id="statusBadge">Telah login sebagai <span id="userEmail">-</span></span>
+    </div>
+    <p>Data jadwal berikut akan diimpor ke Firestore collection <strong>schedule</strong>:</p>
+    <ul style="font-size:13px;color:#555;margin-bottom:16px">
+      <li>Senin, 13 Juli 2026 — 7 kegiatan</li>
+      <li>Selasa, 14 Juli 2026 — 7 kegiatan</li>
+      <li>Rabu, 15 Juli 2026 — 7 kegiatan</li>
+    </ul>
+    <button class="btn btn-primary" id="btnImport"><i class="fa-solid fa-upload"></i> Import Jadwal ke Firestore</button>
+    <button class="btn btn-outline" id="btnLogout" style="margin-left:8px"><i class="fa-solid fa-sign-out-alt"></i> Keluar</button>
+    <div class="log" id="log"></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from '@firebase/app';
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from '@firebase/auth';
+import { getFirestore, collection, addDoc, serverTimestamp, getDocs, deleteDoc, doc } from '@firebase/firestore';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyB3NGx_z2KvhCMeoyPdIVpgsOxgmDF_Yrc",
+  authDomain: "mplssmala-90d68.firebaseapp.com",
+  projectId: "mplssmala-90d68",
+  storageBucket: "mplssmala-90d68.firebasestorage.app",
+  messagingSenderId: "11122419322",
+  appId: "1:11122419322:web:0396b3525ca8752a2c7dc3",
+  measurementId: "G-4W0E7ZNXK4"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const loginForm = document.getElementById('loginForm');
+const importSection = document.getElementById('importSection');
+const log = document.getElementById('log');
+const userEmail = document.getElementById('userEmail');
+
+const data = [
+  { day: 'Senin, 13 Juli 2026', time: '07.00 - 08.00', title: 'Upacara pembukaan MPLS TP. 2026/2027', location: 'Lapangan' },
+  { day: 'Senin, 13 Juli 2026', time: '08.00 - 08.30', title: 'Pengenalan diri', location: 'Kelas' },
+  { day: 'Senin, 13 Juli 2026', time: '08.30 - 10.00', title: 'Wawasan Wiyata Mandala / Pengenalan lingkungan sekolah', location: 'Aula' },
+  { day: 'Senin, 13 Juli 2026', time: '10.00 - 10.30', title: 'Istirahat', location: '-' },
+  { day: 'Senin, 13 Juli 2026', time: '10.30 - 11.30', title: 'Eksplorasi diri: kenali diri melalui potensi yang dimiliki', location: 'Aula' },
+  { day: 'Senin, 13 Juli 2026', time: '11.30 - 12.00', title: 'Refleksi', location: 'Kelas' },
+  { day: 'Senin, 13 Juli 2026', time: '12.00 - 13.00', title: 'Sholat, doa, Penutup', location: 'Mushola / Kelas' },
+  { day: 'Selasa, 14 Juli 2026', time: '07.00 - 07.30', title: 'Pagi ceria', location: 'Lapangan / Kelas' },
+  { day: 'Selasa, 14 Juli 2026', time: '07.30 - 08.30', title: 'Screening kesehatan', location: 'Kelas' },
+  { day: 'Selasa, 14 Juli 2026', time: '08.30 - 10.00', title: 'Pengenalan 8 dimensi profil lulusan', location: 'Aula' },
+  { day: 'Selasa, 14 Juli 2026', time: '10.00 - 10.30', title: 'Istirahat', location: '-' },
+  { day: 'Selasa, 14 Juli 2026', time: '10.30 - 11.30', title: 'Aku Anak Indonesia Hebat, Karakterku kuat (7 KAIH)', location: 'Kelas' },
+  { day: 'Selasa, 14 Juli 2026', time: '11.30 - 12.00', title: 'Refleksi', location: 'Kelas' },
+  { day: 'Selasa, 14 Juli 2026', time: '12.00 - 13.00', title: 'Sholat, doa, Penutup', location: 'Mushola / Kelas' },
+  { day: 'Rabu, 15 Juli 2026', time: '07.00 - 07.30', title: 'Pagi ceria', location: 'Kelas / Lapangan' },
+  { day: 'Rabu, 15 Juli 2026', time: '07.30 - 08.30', title: 'Identifikasi awal kondisi Sosial-ekonomi, model belajar, dan bakat-minat siswa', location: 'Kelas' },
+  { day: 'Rabu, 15 Juli 2026', time: '08.30 - 10.00', title: 'Membangun kesiapsiagaan bencana di sekolah', location: 'Aula' },
+  { day: 'Rabu, 15 Juli 2026', time: '10.00 - 10.30', title: 'Istirahat', location: '-' },
+  { day: 'Rabu, 15 Juli 2026', time: '10.30 - 11.30', title: 'Literasi digital, Keadaban dan Keamanan Digital', location: 'Aula' },
+  { day: 'Rabu, 15 Juli 2026', time: '11.30 - 12.00', title: 'Refleksi', location: 'Kelas' },
+  { day: 'Rabu, 15 Juli 2026', time: '12.00 - 13.00', title: 'Sholat, doa, Penutup', location: 'Mushola / Kelas' },
+];
+
+function logMsg(msg, type = 'info') {
+  const d = document.createElement('div');
+  d.className = type;
+  d.textContent = msg;
+  log.appendChild(d);
+  log.scrollTop = log.scrollHeight;
+}
+
+function clearLog() { log.innerHTML = ''; }
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    loginForm.classList.add('hidden');
+    importSection.classList.remove('hidden');
+    userEmail.textContent = user.email;
+    clearLog();
+    logMsg('Sudah login sebagai ' + user.email, 'ok');
+  } else {
+    loginForm.classList.remove('hidden');
+    importSection.classList.add('hidden');
+  }
+});
+
+document.getElementById('btnLogin').onclick = async () => {
+  const email = document.getElementById('email').value.trim();
+  const pass = document.getElementById('password').value;
+  const errEl = document.getElementById('loginError');
+  errEl.textContent = '';
+  document.getElementById('btnLogin').disabled = true;
+  document.getElementById('btnLogin').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Masuk...';
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+  } catch (e) {
+    errEl.textContent = 'Gagal login: ' + e.message;
+    document.getElementById('btnLogin').disabled = false;
+    document.getElementById('btnLogin').innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Masuk';
+  }
+};
+
+document.getElementById('btnLogout').onclick = () => signOut(auth);
+
+document.getElementById('btnImport').onclick = async () => {
+  const btn = document.getElementById('btnImport');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengimpor...';
+  clearLog();
+
+  try {
+    const existing = await getDocs(collection(db, 'schedule'));
+    if (existing.size > 0) {
+      logMsg(`Ditemukan ${existing.size} data lama. Menghapus...`, 'info');
+      for (const d of existing.docs) {
+        await deleteDoc(doc(db, 'schedule', d.id));
+      }
+      logMsg(`${existing.size} data lama berhasil dihapus.`, 'ok');
+    }
+
+    let success = 0;
+    for (const item of data) {
+      await addDoc(collection(db, 'schedule'), {
+        ...item,
+        createdAt: serverTimestamp()
+      });
+      success++;
+      logMsg(`(${success}/${data.length}) ${item.day} — ${item.time} — ${item.title}`, 'ok');
+    }
+
+    logMsg(`\n✓ Selesai! ${success} jadwal berhasil diimpor ke Firestore.`, 'ok');
+    btn.innerHTML = '<i class="fa-solid fa-check"></i> Import Berhasil';
+  } catch (e) {
+    logMsg('Error: ' + e.message, 'err');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-upload"></i> Import Jadwal ke Firestore';
+  }
+};
+</script>
+</body>
+</html>

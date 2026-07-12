@@ -60,7 +60,7 @@ function setupNav() {
   });
 }
 
-const titles = { overview:'Beranda', soal:'Soal MPLS', materi:'Materi', jadwal:'Jadwal Pelajaran', kegiatan:'Jadwal Kegiatan', rating:'Rating OSIS', nilai:'Nilai Saya', notif:'Notifikasi', info:'Informasi MPLS', profil:'Profil' };
+const titles = { overview:'Beranda', soal:'Soal MPLS', materi:'Materi', jadwal:'Jadwal Kegiatan', rating:'Rating OSIS', nilai:'Nilai Saya', notif:'Notifikasi', info:'Informasi MPLS', profil:'Profil' };
 
 function renderError(err, retryFn) {
   const msg = (err && err.message) ? err.message : String(err || 'Terjadi kesalahan');
@@ -96,7 +96,6 @@ function loadPage(page) {
     soal:     safePage('soal',     pageSoal),
     materi:   safePage('materi',   pageMateri),
     jadwal:   safePage('jadwal',   pageJadwal),
-    kegiatan: safePage('kegiatan', pageKegiatan),
     rating:   safePage('rating',   pageRating),
     nilai:    safePage('nilai',    pageNilai),
     notif:    safePage('notif',    pageNotif),
@@ -180,7 +179,7 @@ async function pageOverview() {
   try {
     const q = await getDocs(collection(db, 'questions'));
     const m = await getDocs(collection(db, 'materials'));
-    const k = await getDocs(collection(db, 'activities'));
+    const k = await getDocs(collection(db, 'schedule'));
     // count unique quiz sets, not individual questions
     const sets = new Set(); q.forEach(d => sets.add(d.data().quizSet || 'Umum'));
     document.getElementById('kQ').textContent = sets.size;
@@ -504,17 +503,15 @@ async function pageMateri() {
 }
 
 // ===== Jadwal =====
-async function pageJadwal() { await renderSchedule('schedule', 'Jadwal Pelajaran'); }
-async function pageKegiatan() { await renderSchedule('activities', 'Jadwal Kegiatan'); }
-async function renderSchedule(coll, label) {
-  const snap = await getDocs(collection(db, coll));
+async function pageJadwal() {
+  const snap = await getDocs(collection(db, 'schedule'));
   const items = []; snap.forEach(d => items.push({ id: d.id, ...d.data() }));
-  if (!items.length) return content.innerHTML = emptyState(`Belum ada ${label.toLowerCase()}`, 'Akan diperbarui oleh admin.');
+  if (!items.length) return content.innerHTML = emptyState('Belum ada jadwal kegiatan', 'Akan diperbarui oleh admin.');
   content.innerHTML = `
     <div class="panel">
-      <div class="panel-head"><h3>${label}</h3></div>
+      <div class="panel-head"><h3>Jadwal Kegiatan</h3></div>
       <div class="table-wrap"><table class="tbl">
-        <thead><tr><th>Hari/Tanggal</th><th>Waktu</th><th>${coll==='activities'?'Kegiatan':'Mata Pelajaran'}</th><th>Lokasi</th></tr></thead>
+        <thead><tr><th>Hari/Tanggal</th><th>Waktu</th><th>Kegiatan</th><th>Lokasi</th></tr></thead>
         <tbody>${items.map(s => `<tr><td><strong>${s.day || ''}</strong></td><td>${s.time || ''}</td><td>${s.title || ''}</td><td>${s.location || '-'}</td></tr>`).join('')}</tbody>
       </table></div>
     </div>`;
