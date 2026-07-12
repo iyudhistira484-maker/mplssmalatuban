@@ -442,24 +442,52 @@ async function pageSchedule(coll) {
       </table></div>
     </div>`;
   document.getElementById('addS').onclick = () => {
+    let rowCount = 0;
+    const rowsEl = () => document.getElementById('sRows');
+    const addRow = (time='', title='', location='') => {
+      const i = rowCount++;
+      const d = document.createElement('div');
+      d.className = 's-row';
+      d.id = 'sRow'+i;
+      d.innerHTML = `
+        <div style="display:flex;gap:8px;align-items:end;flex-wrap:wrap;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--line)">
+          <div class="field" style="flex:1;min-width:120px"><label>Waktu</label><div class="ctrl"><i class="fa-solid fa-clock"></i><input class="sT" placeholder="07.00 - 08.00" value="${time.replace(/"/g,'&quot;')}"></div></div>
+          <div class="field" style="flex:2;min-width:180px"><label>${isAct?'Nama Kegiatan':'Mata Pelajaran'}</label><div class="ctrl"><i class="fa-solid fa-bookmark"></i><input class="sN" value="${title.replace(/"/g,'&quot;')}"></div></div>
+          <div class="field" style="flex:1;min-width:120px"><label>Lokasi</label><div class="ctrl"><i class="fa-solid fa-location-dot"></i><input class="sL" placeholder="Aula / R. Kelas" value="${location.replace(/"/g,'&quot;')}"></div></div>
+          <button class="btn btn-danger" style="flex-shrink:0;margin-bottom:2px" onclick="this.closest('.s-row').remove()"><i class="fa-solid fa-xmark"></i></button>
+        </div>`;
+      rowsEl().appendChild(d);
+    };
     modalBox.innerHTML = `
-      <div class="modal-head"><h3>Tambah ${isAct?'Kegiatan':'Jadwal'}</h3><button class="icon-btn" data-close="modal"><i class="fa-solid fa-xmark"></i></button></div>
+      <div class="modal-head"><h3>Tambah ${isAct?'Kegiatan':'Jadwal'} (Banyak)</h3><button class="icon-btn" data-close="modal"><i class="fa-solid fa-xmark"></i></button></div>
       <div class="modal-body">
-        <div class="field-row">
-          <div class="field"><label>Hari/Tanggal</label><div class="ctrl"><i class="fa-solid fa-calendar"></i><input id="sD" placeholder="Senin / 22 Jul 2025"></div></div>
-          <div class="field"><label>Waktu</label><div class="ctrl"><i class="fa-solid fa-clock"></i><input id="sT" placeholder="07.00 - 09.00"></div></div>
-        </div>
-        <div class="field"><label>${isAct?'Nama Kegiatan':'Mata Pelajaran'}</label><div class="ctrl"><i class="fa-solid fa-bookmark"></i><input id="sN"></div></div>
-        <div class="field"><label>Lokasi</label><div class="ctrl"><i class="fa-solid fa-location-dot"></i><input id="sL" placeholder="Aula / R. Kelas"></div></div>
+        <div class="field"><label>Hari/Tanggal</label><div class="ctrl"><i class="fa-solid fa-calendar"></i><input id="sD" placeholder="Senin / 22 Jul 2025"></div></div>
+        <div style="margin-top:12px"><label style="display:block;font-weight:600;margin-bottom:6px">Daftar Kegiatan</label>
+        <div id="sRows"></div>
+        <button class="btn btn-ghost" id="addRowBtn" style="width:100%"><i class="fa-solid fa-plus"></i> Tambah Baris</button></div>
       </div>
-      <div class="modal-foot"><button class="btn btn-ghost" data-close="modal">Batal</button><button class="btn btn-primary" id="ss">Simpan</button></div>`;
+      <div class="modal-foot"><button class="btn btn-ghost" data-close="modal">Batal</button><button class="btn btn-primary" id="ss">Simpan Semua</button></div>`;
+    addRow();
+    document.getElementById('addRowBtn').onclick = () => addRow();
     showModal('modal');
     document.getElementById('ss').onclick = async () => {
-      const data = { day:document.getElementById('sD').value, time:document.getElementById('sT').value, title:document.getElementById('sN').value, location:document.getElementById('sL').value, createdAt: serverTimestamp() };
-      if (!data.title) return toast('Judul wajib', { type:'warning' });
+      const day = document.getElementById('sD').value.trim();
+      if (!day) return toast('Hari/Tanggal wajib diisi', { type:'warning' });
+      const rowEls = rowsEl().querySelectorAll('.s-row');
+      const batch = [];
+      let hasData = false;
+      rowEls.forEach(el => {
+        const time = el.querySelector('.sT').value.trim();
+        const title = el.querySelector('.sN').value.trim();
+        const location = el.querySelector('.sL').value.trim();
+        if (!title) return;
+        hasData = true;
+        batch.push({ day, time, title, location, createdAt: serverTimestamp() });
+      });
+      if (!hasData) return toast('Minimal 1 kegiatan harus diisi', { type:'warning' });
       try {
-        await addDoc(collection(db, coll), data);
-        hideModal('modal'); toast('Disimpan', { type:'success' });
+        for (const data of batch) await addDoc(collection(db, coll), data);
+        hideModal('modal'); toast(`${batch.length} kegiatan disimpan`, { type:'success' });
         loadPage(isAct?'kegiatan':'jadwal');
       } catch(e) { toast(e.message, { type:'error' }); }
     };
