@@ -209,7 +209,7 @@ async function pageSoal() {
         <div class="card">
           <div class="card-icon"><i class="fa-solid fa-file-pen"></i></div>
           <h3>${name}</h3>
-          <p>${list.length} soal · Estimasi ${list.length * 2} menit</p>
+          <p>${list.length} soal</p>
           ${isDone
             ? '<span class="badge green" style="margin-top:10px"><i class="fa-solid fa-check"></i> Sudah dikerjakan</span>'
             : `<button class="btn btn-primary" style="margin-top:14px" onclick="window.startQuiz('${name}')"><i class="fa-solid fa-play"></i> Mulai Mengerjakan</button>`}
@@ -235,11 +235,8 @@ async function renderQuiz(setName) {
   let violationCount = 0;
   let penaltyTotal = 0;
   const violationLog = [];
-  const totalTime = qs.length * 120;
-  let timeLeft = totalTime;
   let current = 0;
   let started = true;
-  let timerEl;
 
   const OPT_KEYS = ['A','B','C','D','E','F','G','H'];
 
@@ -253,7 +250,6 @@ async function renderQuiz(setName) {
               <div class="ex-sub">${qs.length} soal · Anti-cheat aktif (${MAX_VIOLATIONS_BEFORE_AUTOSUBMIT}x pelanggaran = auto-submit)</div>
             </div>
             <span class="exam-pill" id="vPill"><i class="fa-solid fa-shield-halved"></i> Pelanggaran 0/${MAX_VIOLATIONS_BEFORE_AUTOSUBMIT}</span>
-            <div class="ex-timer" id="timer"><i class="fa-regular fa-clock"></i> --:--</div>
           </div>
           <div class="exam-body" id="qBody"></div>
           <div class="exam-nav">
@@ -280,7 +276,6 @@ async function renderQuiz(setName) {
           <button class="btn btn-primary btn-block" id="btnSubmitSide" style="margin-top:14px"><i class="fa-solid fa-paper-plane"></i> Kumpulkan Sekarang</button>
         </aside>
       </div>`;
-    timerEl = document.getElementById('timer');
     document.getElementById('btnPrev').onclick = () => go(current - 1);
     document.getElementById('btnNext').onclick = () => go(current + 1);
     document.getElementById('btnFlag').onclick = toggleFlag;
@@ -288,7 +283,6 @@ async function renderQuiz(setName) {
     document.getElementById('btnSubmitSide').onclick = confirmSubmit;
     renderPalette();
     renderQ();
-    tick();
   };
 
   const renderPalette = () => {
@@ -361,18 +355,6 @@ async function renderQuiz(setName) {
   const toggleFlag = () => {
     if (flagged.has(current)) flagged.delete(current); else flagged.add(current);
     renderQ(); renderPalette();
-  };
-
-  const tick = () => {
-    if (!started) return;
-    const m = String(Math.floor(timeLeft/60)).padStart(2,'0');
-    const s = String(timeLeft%60).padStart(2,'0');
-    if (timerEl) {
-      timerEl.innerHTML = `<i class="fa-regular fa-clock"></i> ${m}:${s}`;
-      timerEl.classList.toggle('warn', timeLeft <= 60);
-    }
-    if (timeLeft-- <= 0) { submit(true, 'Waktu habis'); return; }
-    setTimeout(tick, 1000);
   };
 
   const confirmSubmit = () => {
