@@ -223,8 +223,8 @@ async function pageSoal() {
     ${list.map((q,i)=>`<tr>
       <td style="width:50px;color:var(--muted);font-family:var(--font-mono)">${i+1}</td>
       <td style="max-width:480px">${escapeHtml(q.text)}</td>
-      <td><span class="badge ${q.type==='mcq'?'blue':'gold'}">${q.type==='mcq'?'Pilihan Ganda':'Isian'}</span></td>
-      <td>${q.type==='mcq'?`<small style="color:var(--muted)">${(q.options||[]).length} opsi · benar: ${String.fromCharCode(65+(q.correctIndex||0))}</small>`:'<small style="color:var(--muted)">—</small>'}</td>
+      <td><span class="badge ${q.type==='mcq'?'blue':q.type==='tabel'?'gray':'gold'}">${q.type==='mcq'?'Pilihan Ganda':q.type==='tabel'?'Tabel':'Isian'}</span></td>
+      <td>${q.type==='mcq'?`<small style="color:var(--muted)">${(q.options||[]).length} opsi · benar: ${String.fromCharCode(65+(q.correctIndex||0))}</small>`:q.type==='tabel'?`<small style="color:var(--muted)">${(q.tableConfig?.rows||[]).length} baris × ${(q.tableConfig?.columns||[]).length} kolom</small>`:'<small style="color:var(--muted)">—</small>'}</td>
       <td><div class="q-actions">
         <button class="btn btn-danger" onclick="window.delQ('${q.id}')"><i class="fa-solid fa-trash"></i></button>
       </div></td>
@@ -280,10 +280,11 @@ function bulkItemTemplate(idx, prefill={}) {
         <select data-k="type">
           <option value="mcq"${type==='mcq'?' selected':''}>Pilihan Ganda</option>
           <option value="text"${type==='text'?' selected':''}>Isian Singkat</option>
+          <option value="tabel"${type==='tabel'?' selected':''}>Tabel Centang/Isian</option>
         </select>
         <textarea data-k="text" placeholder="Tulis pertanyaan...">${escapeHtml(prefill.text||'')}</textarea>
       </div>
-      <div class="bulk-mcq" style="${type==='text'?'display:none':''}">
+      <div class="bulk-mcq" style="${type==='text'||type==='tabel'?'display:none':''}">
         <textarea data-k="opts" placeholder="Pilihan A&#10;Pilihan B&#10;Pilihan C&#10;Pilihan D">${escapeHtml((prefill.options||[]).join('\n'))}</textarea>
         <div class="bi-row">
           <select data-k="cor">
@@ -291,6 +292,17 @@ function bulkItemTemplate(idx, prefill={}) {
           </select>
           <div style="font-size:12px;color:var(--muted);align-self:center">Pisahkan tiap pilihan dengan baris baru.</div>
         </div>
+      </div>
+      <div class="bulk-tabel" style="${type!=='tabel'?'display:none':''}">
+        <div style="margin-top:8px">
+          <label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px">Definisi Kolom (header|type):</label>
+          <textarea data-tabel="cols" placeholder="Kegiatan|checkbox&#10;Sudah?|checkbox&#10;Keterangan|text" style="width:100%;min-height:50px;padding:8px;border:1px solid var(--line);border-radius:8px;font-size:13px"></textarea>
+        </div>
+        <div style="margin-top:8px">
+          <label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px">Label Baris (satu per baris):</label>
+          <textarea data-tabel="rows" placeholder="Senam pagi&#10;Pengenalan OSIS&#10;..." style="width:100%;min-height:50px;padding:8px;border:1px solid var(--line);border-radius:8px;font-size:13px"></textarea>
+        </div>
+        <div style="margin-top:8px;font-size:12px;color:var(--muted)">Tipe: <b>checkbox</b> = centang, <b>text</b> = isian teks. Header kolom pertama biasanya label baris.</div>
       </div>
     </div>`;
 }
@@ -305,7 +317,7 @@ function openBulkModal() {
         <label>Jumlah:</label>
         <input id="bCount" type="number" min="1" max="50" value="10" style="width:80px">
         <label>Tipe default:</label>
-        <select id="bType"><option value="mcq">Pilihan Ganda</option><option value="text">Isian Singkat</option><option value="mix">Campuran</option></select>
+        <select id="bType"><option value="mcq">Pilihan Ganda</option><option value="text">Isian Singkat</option><option value="tabel">Tabel Centang/Isian</option><option value="mix">Campuran</option></select>
         <button class="btn btn-outline" id="bGen"><i class="fa-solid fa-wand-magic-sparkles"></i> Buat Slot</button>
         <button class="btn btn-ghost" id="bAdd1"><i class="fa-solid fa-plus"></i> Tambah 1</button>
       </div>
@@ -331,13 +343,16 @@ function openBulkModal() {
     });
     list.querySelectorAll('[data-k="type"]').forEach(s => s.onchange = (e) => {
       const item = e.target.closest('.bulk-item');
-      item.querySelector('.bulk-mcq').style.display = e.target.value==='text' ? 'none' : '';
+      const val = e.target.value;
+      item.querySelector('.bulk-mcq').style.display = val==='text' || val==='tabel' ? 'none' : '';
+      item.querySelector('.bulk-tabel').style.display = val==='tabel' ? '' : 'none';
     });
   };
   const generate = (n, defType) => {
     list.innerHTML = '';
+    const types = ['mcq', 'text', 'tabel'];
     for (let i = 0; i < n; i++) {
-      const t = defType === 'mix' ? (i%2===0?'mcq':'text') : defType;
+      const t = defType === 'mix' ? types[i % 3] : defType;
       list.insertAdjacentHTML('beforeend', bulkItemTemplate(i, { type: t }));
     }
     wire();
@@ -350,7 +365,9 @@ function openBulkModal() {
   };
   document.getElementById('bAdd1').onclick = () => {
     const idx = list.querySelectorAll('.bulk-item').length;
-    list.insertAdjacentHTML('beforeend', bulkItemTemplate(idx, { type: document.getElementById('bType').value==='text'?'text':'mcq' }));
+    const defType = document.getElementById('bType').value;
+    const t = defType === 'mix' ? 'mcq' : defType;
+    list.insertAdjacentHTML('beforeend', bulkItemTemplate(idx, { type: t }));
     wire();
   };
   document.getElementById('bSave').onclick = async () => {
@@ -369,6 +386,17 @@ function openBulkModal() {
         data.options = opts;
         data.correctIndex = +it.querySelector('[data-k="cor"]').value;
         if (data.correctIndex >= opts.length) data.correctIndex = 0;
+      } else if (type === 'tabel') {
+        const colsText = it.querySelector('[data-tabel="cols"]').value.trim();
+        const rowsText = it.querySelector('[data-tabel="rows"]').value.trim();
+        if (!colsText || !rowsText) { invalid++; return; }
+        const columns = colsText.split('\n').map(s => {
+          const parts = s.split('|').map(x => x.trim());
+          return { header: parts[0] || '', type: parts[1] || 'checkbox' };
+        }).filter(c => c.header);
+        const rows = rowsText.split('\n').map(s => s.trim()).filter(Boolean);
+        if (!columns.length || !rows.length) { invalid++; return; }
+        data.tableConfig = { columns, rows };
       }
       items.push(data);
     });

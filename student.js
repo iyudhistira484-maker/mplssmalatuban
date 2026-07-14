@@ -287,15 +287,27 @@ async function renderQuiz(setName) {
 
   const renderPalette = () => {
     const p = document.getElementById('palette');
+    const isAnswered = (q) => {
+      const v = answers[q.id];
+      if (v === undefined || v === '') return false;
+      if (q.type === 'tabel') return typeof v === 'object' && Object.keys(v).length > 0;
+      return true;
+    };
     p.innerHTML = qs.map((_,i) => {
       const cls = ['exam-cell'];
       if (i === current) cls.push('current');
-      else if (answers[qs[i].id] !== undefined && answers[qs[i].id] !== '') cls.push('answered');
+      else if (isAnswered(qs[i])) cls.push('answered');
       if (flagged.has(i)) cls.push('flagged');
       return `<button class="${cls.join(' ')}" data-i="${i}">${i+1}</button>`;
     }).join('');
     p.querySelectorAll('button').forEach(b => b.onclick = () => go(+b.dataset.i));
-    document.getElementById('sAns').textContent = Object.keys(answers).filter(k => answers[k] !== '' && answers[k] !== undefined).length;
+    const countAnswered = () => qs.reduce((sum, q) => {
+      const v = answers[q.id];
+      if (v === undefined || v === '') return sum;
+      if (q.type === 'tabel') return sum + (typeof v === 'object' && Object.keys(v).length > 0 ? 1 : 0);
+      return sum + 1;
+    }, 0);
+    document.getElementById('sAns').textContent = countAnswered();
     document.getElementById('sFlag').textContent = flagged.size;
     document.getElementById('sPen').textContent = '−' + penaltyTotal;
   };
@@ -303,8 +315,9 @@ async function renderQuiz(setName) {
   const renderQ = () => {
     const q = qs[current];
     const body = document.getElementById('qBody');
+    const typeLabel = q.type === 'mcq' ? 'Pilihan Ganda' : q.type === 'tabel' ? 'Tabel Centang/Isian' : 'Isian Singkat';
     let inner = `
-      <div class="exam-qnum">SOAL ${current+1} DARI ${qs.length} · ${q.type === 'mcq' ? 'Pilihan Ganda' : 'Isian Singkat'}</div>
+      <div class="exam-qnum">SOAL ${current+1} DARI ${qs.length} · ${typeLabel}</div>
       <div class="exam-qtext">${escapeHtml(q.text)}</div>`;
     if (q.type === 'mcq') {
       inner += '<div class="exam-options">' + (q.options || []).map((opt, oi) => {
@@ -315,6 +328,26 @@ async function renderQuiz(setName) {
           <span>${escapeHtml(opt)}</span>
         </label>`;
       }).join('') + '</div>';
+    } else if (q.type === 'tabel') {
+      const cfg = q.tableConfig || { columns: [], rows: [] };
+      const existing = answers[q.id] || {};
+      inner += '<div class="table-wrap" style="margin-top:14px"><table class="tbl">';
+      inner += '<thead><tr><th>#</th>' + cfg.columns.map(c => `<th>${escapeHtml(c.header)}</th>`).join('') + '</tr></thead>';
+      inner += '<tbody>' + cfg.rows.map((label, ri) => {
+        const rowData = existing[ri] || {};
+        return '<tr><td style="font-weight:600;white-space:nowrap">' + escapeHtml(label) + '</td>' +
+          cfg.columns.map((c, ci) => {
+            if (c.type === 'checkbox') {
+              const checked = rowData[ci] ? 'checked' : '';
+              return `<td style="text-align:center"><input type="checkbox" data-tr="${ri}" data-tc="${ci}" ${checked} style="width:22px;height:22px;cursor:pointer"></td>`;
+            } else if (c.type === 'text') {
+              const val = rowData[ci] || '';
+              return `<td><input type="text" data-tr="${ri}" data-tc="${ci}" value="${escapeAttr(val)}" style="width:100%;min-width:100px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;font-size:13px"></td>`;
+            }
+            return '<td></td>';
+          }).join('') + '</tr>';
+      }).join('') + '</tbody>';
+      inner += '</table></div>';
     } else {
       inner += `<input class="exam-text-input" type="text" id="txtAns" placeholder="Ketik jawabanmu di sini..." value="${escapeAttr(answers[q.id] || '')}">`;
     }
@@ -330,6 +363,26 @@ async function renderQuiz(setName) {
           answers[q.id] = +inp.value;
           renderPalette();
         });
+      });
+    } else if (q.type === 'tabel') {
+      body.querySelectorAll('[data-tr]').forEach(el => {
+        const ri = +el.dataset.tr;
+        const ci = +el.dataset.tc;
+        if (el.type === 'checkbox') {
+          el.onchange = () => {
+            if (!answers[q.id]) answers[q.id] = {};
+            if (!answers[q.id][ri]) answers[q.id][ri] = {};
+            answers[q.id][ri][ci] = el.checked;
+            renderPalette();
+          };
+        } else if (el.type === 'text') {
+          el.oninput = () => {
+            if (!answers[q.id]) answers[q.id] = {};
+            if (!answers[q.id][ri]) answers[q.id][ri] = {};
+            answers[q.id][ri][ci] = el.value;
+            renderPalette();
+          };
+        }
       });
     } else {
       const t = document.getElementById('txtAns');
@@ -358,7 +411,12 @@ async function renderQuiz(setName) {
   };
 
   const confirmSubmit = () => {
-    const answered = Object.keys(answers).filter(k => answers[k] !== '' && answers[k] !== undefined).length;
+    const answered = qs.reduce((sum, q) => {
+      const v = answers[q.id];
+      if (v === undefined || v === '') return sum;
+      if (q.type === 'tabel') return sum + (typeof v === 'object' && Object.keys(v).length > 0 ? 1 : 0);
+      return sum + 1;
+    }, 0);
     const unanswered = qs.length - answered;
     const msg = unanswered > 0
       ? `Masih ada ${unanswered} soal belum dijawab. Yakin kumpulkan sekarang?`
