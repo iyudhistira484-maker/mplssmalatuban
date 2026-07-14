@@ -223,8 +223,8 @@ async function pageSoal() {
     ${list.map((q,i)=>`<tr>
       <td style="width:50px;color:var(--muted);font-family:var(--font-mono)">${i+1}</td>
       <td style="max-width:480px">${escapeHtml(q.text)}</td>
-      <td><span class="badge ${q.type==='mcq'?'blue':q.type==='table_checklist'||q.type==='table_fillin'?'gray':'gold'}">${q.type==='mcq'?'Pilihan Ganda':q.type==='table_checklist'?'Tbl Centang':q.type==='table_fillin'?'Tbl Isian':'Isian'}</span></td>
-      <td>${q.type==='mcq'?`<small style="color:var(--muted)">${(q.options||[]).length} opsi · benar: ${String.fromCharCode(65+(q.correctIndex||0))}</small>`:q.type==='table_checklist'||q.type==='table_fillin'?`<small style="color:var(--muted)">${(q.tableConfig?.rows||[]).length} baris</small>`:'<small style="color:var(--muted)">—</small>'}</td>
+      <td><span class="badge ${q.type==='mcq'?'blue':q.type==='table_checklist'||q.type==='tabel'||q.type==='table_fillin'?'gray':'gold'}">${q.type==='mcq'?'Pilihan Ganda':q.type==='table_checklist'||q.type==='tabel'?'Tbl Centang':q.type==='table_fillin'?'Tbl Isian':'Isian'}</span></td>
+      <td>${q.type==='mcq'?`<small style="color:var(--muted)">${(q.options||[]).length} opsi · benar: ${String.fromCharCode(65+(q.correctIndex||0))}</small>`:q.type==='table_checklist'||q.type==='tabel'||q.type==='table_fillin'?`<small style="color:var(--muted)">${(q.tableConfig?.rows||[]).length} baris</small>`:'<small style="color:var(--muted)">—</small>'}</td>
       <td><div class="q-actions">
         <button class="btn btn-danger" onclick="window.delQ('${q.id}')"><i class="fa-solid fa-trash"></i></button>
       </div></td>
@@ -299,6 +299,7 @@ function bulkItemTemplate(idx, prefill={}) {
           <label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px">Daftar Item (satu per baris):</label>
           <textarea data-checklist="rows" placeholder="Senam pagi&#10;Pengenalan OSIS&#10;Bakti sosial&#10;..." style="width:100%;min-height:60px;padding:8px;border:1px solid var(--line);border-radius:8px;font-size:13px"></textarea>
         </div>
+        <div class="tbl-preview" style="margin-top:6px;font-size:12px;color:var(--muted)">Preview akan tampil di sini...</div>
         <div style="margin-top:6px;font-size:12px;color:var(--muted)">Siswa akan memberi <b>centang</b> pada setiap item.</div>
       </div>
       <div class="bulk-table-fillin" style="${type!=='table_fillin'?'display:none':''}">
@@ -306,6 +307,7 @@ function bulkItemTemplate(idx, prefill={}) {
           <label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px">Daftar Field (satu per baris):</label>
           <textarea data-fillin="rows" placeholder="Nama lengkap&#10;Kelas&#10;Cita-cita&#10;..." style="width:100%;min-height:60px;padding:8px;border:1px solid var(--line);border-radius:8px;font-size:13px"></textarea>
         </div>
+        <div class="tbl-preview" style="margin-top:6px;font-size:12px;color:var(--muted)">Preview akan tampil di sini...</div>
         <div style="margin-top:6px;font-size:12px;color:var(--muted)">Siswa akan <b>mengetik jawaban</b> pada setiap field.</div>
       </div>
     </div>`;
@@ -351,6 +353,29 @@ function openBulkModal() {
       item.querySelector('.bulk-mcq').style.display = val==='mcq' ? '' : 'none';
       item.querySelector('.bulk-table-checklist').style.display = val==='table_checklist' ? '' : 'none';
       item.querySelector('.bulk-table-fillin').style.display = val==='table_fillin' ? '' : 'none';
+      if (val==='table_checklist' || val==='table_fillin') setTimeout(() => updatePreview(item.querySelector(`[data-${val==='table_checklist'?'checklist':'fillin'}="rows"]`)), 50);
+    });
+    const updatePreview = (ta) => {
+      if (!ta) return;
+      const item = ta.closest('.bulk-item');
+      const preview = item.querySelector('.tbl-preview');
+      const isChecklist = ta.matches('[data-checklist]');
+      const rows = ta.value.split('\n').map(s => s.trim()).filter(Boolean);
+      if (!rows.length) { preview.innerHTML = 'Preview akan tampil di sini...'; return; }
+      let h = '<div class="table-wrap"><table class="tbl" style="font-size:12px;margin:0">';
+      if (isChecklist) {
+        h += '<thead><tr><th style="width:30px">No</th><th>Item</th><th style="width:40px;text-align:center">✔</th></tr></thead><tbody>';
+        h += rows.map((r,i) => `<tr><td>${i+1}</td><td>${escapeHtml(r)}</td><td style="text-align:center"><input type="checkbox" disabled style="width:14px;height:14px;margin:0"></td></tr>`).join('');
+      } else {
+        h += '<thead><tr><th style="width:30px">No</th><th>Field</th><th>Jawaban</th></tr></thead><tbody>';
+        h += rows.map((r,i) => `<tr><td>${i+1}</td><td>${escapeHtml(r)}</td><td><input type="text" disabled style="width:100%;padding:3px 5px;border:1px solid var(--line);border-radius:4px;font-size:11px" placeholder="..."></td></tr>`).join('');
+      }
+      h += '</tbody></table></div>';
+      preview.innerHTML = h;
+    };
+    list.querySelectorAll('[data-checklist="rows"], [data-fillin="rows"]').forEach(ta => {
+      ta.oninput = () => updatePreview(ta);
+      setTimeout(() => updatePreview(ta), 50);
     });
   };
   const generate = (n, defType) => {

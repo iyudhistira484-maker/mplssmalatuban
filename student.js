@@ -290,7 +290,7 @@ async function renderQuiz(setName) {
     const isAnswered = (q) => {
       const v = answers[q.id];
       if (v === undefined || v === '') return false;
-      if (q.type === 'table_checklist' || q.type === 'table_fillin') return typeof v === 'object' && Object.keys(v).length > 0;
+      if (q.type === 'table_checklist' || q.type === 'tabel' || q.type === 'table_fillin') return typeof v === 'object' && Object.keys(v).length > 0;
       return true;
     };
     p.innerHTML = qs.map((_,i) => {
@@ -304,7 +304,7 @@ async function renderQuiz(setName) {
     const countAnswered = () => qs.reduce((sum, q) => {
       const v = answers[q.id];
       if (v === undefined || v === '') return sum;
-      if (q.type === 'table_checklist' || q.type === 'table_fillin') return sum + (typeof v === 'object' && Object.keys(v).length > 0 ? 1 : 0);
+      if (q.type === 'table_checklist' || q.type === 'tabel' || q.type === 'table_fillin') return sum + (typeof v === 'object' && Object.keys(v).length > 0 ? 1 : 0);
       return sum + 1;
     }, 0);
     document.getElementById('sAns').textContent = countAnswered();
@@ -315,7 +315,7 @@ async function renderQuiz(setName) {
   const renderQ = () => {
     const q = qs[current];
     const body = document.getElementById('qBody');
-    const typeLabel = q.type === 'mcq' ? 'Pilihan Ganda' : q.type === 'table_checklist' ? 'Tabel Centang' : q.type === 'table_fillin' ? 'Tabel Isian' : 'Isian Singkat';
+    const typeLabel = q.type === 'mcq' ? 'Pilihan Ganda' : q.type === 'table_checklist' || q.type === 'tabel' ? 'Tabel Centang' : q.type === 'table_fillin' ? 'Tabel Isian' : 'Isian Singkat';
     let inner = `
       <div class="exam-qnum">SOAL ${current+1} DARI ${qs.length} · ${typeLabel}</div>
       <div class="exam-qtext">${escapeHtml(q.text)}</div>`;
@@ -328,7 +328,7 @@ async function renderQuiz(setName) {
           <span>${escapeHtml(opt)}</span>
         </label>`;
       }).join('') + '</div>';
-    } else if (q.type === 'table_checklist') {
+    } else if (q.type === 'table_checklist' || q.type === 'tabel') {
       const rows = q.tableConfig?.rows || [];
       const existing = answers[q.id] || {};
       inner += '<div class="table-wrap" style="margin-top:14px"><table class="tbl">';
@@ -362,7 +362,7 @@ async function renderQuiz(setName) {
           renderPalette();
         });
       });
-    } else if (q.type === 'table_checklist' || q.type === 'table_fillin') {
+    } else if (q.type === 'table_checklist' || q.type === 'tabel' || q.type === 'table_fillin') {
       body.querySelectorAll('[data-tr]').forEach(el => {
         const ri = +el.dataset.tr;
         const ci = +el.dataset.tc;
@@ -412,7 +412,7 @@ async function renderQuiz(setName) {
     const answered = qs.reduce((sum, q) => {
       const v = answers[q.id];
       if (v === undefined || v === '') return sum;
-      if (q.type === 'table_checklist' || q.type === 'table_fillin') return sum + (typeof v === 'object' && Object.keys(v).length > 0 ? 1 : 0);
+      if (q.type === 'table_checklist' || q.type === 'tabel' || q.type === 'table_fillin') return sum + (typeof v === 'object' && Object.keys(v).length > 0 ? 1 : 0);
       return sum + 1;
     }, 0);
     const unanswered = qs.length - answered;
