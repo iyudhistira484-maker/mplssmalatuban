@@ -157,7 +157,7 @@ document.getElementById('btnGps').addEventListener('click', () => {
     statusEl.textContent = 'Gagal dapatkan lokasi. Coba lagi.';
   };
 
-  navigator.geolocation.getCurrentPosition(onSuccess, onError, { enableHighAccuracy: false, timeout: 25000 });
+  navigator.geolocation.getCurrentPosition(onSuccess, onError, { enableHighAccuracy: true, timeout: 30000, maximumAge: 60000 });
 });
 
 // ===== Face Verification (Izin/Sakit) =====
