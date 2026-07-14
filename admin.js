@@ -264,6 +264,14 @@ window.delSet = async (setName) => {
   } catch(e) { toast(e.message, { type:'error' }); }
 };
 
+window.delAnswer = async (id, name) => {
+  if (!confirm(`Hapus jawaban ${name}? Nilai & jawaban akan dihapus permanen.`)) return;
+  try {
+    await deleteDoc(doc(db, 'answers', id));
+    toast(`Jawaban ${name} dihapus`, { type:'success' });
+  } catch(e) { toast(e.message, { type:'error' }); }
+};
+
 // ===== Bulk question creator =====
 let bulkCounter = 0;
 function bulkItemTemplate(idx, prefill={}) {
@@ -683,7 +691,10 @@ async function pageJawaban() {
           <td><strong>${a.name}</strong><br><small style="color:var(--muted)">${a.kelas||''}</small></td>
           <td>${a.violations ? `<span class="badge red">${a.violations}</span>` : '<span class="badge green">0</span>'}</td>
           <td>${a.finalScore!=null?`<strong>${a.finalScore}</strong>`:'<span class="badge gold">Belum</span>'}</td>
-          <td><button class="btn btn-outline" onclick="window.gradeModal('${a.id}')"><i class="fa-solid fa-pen"></i> Nilai</button></td>
+          <td style="white-space:nowrap">
+            <button class="btn btn-outline" onclick="window.gradeModal('${a.id}')" style="margin-right:4px"><i class="fa-solid fa-pen"></i></button>
+            <button class="btn btn-danger" onclick="window.delAnswer('${a.id}','${escapeAttr(a.name||'')}')" style="padding:6px 10px"><i class="fa-solid fa-trash"></i></button>
+          </td>
         </tr>`).join('');
         return `<div style="margin-bottom:16px">
           <h4 style="margin:0 0 8px;font-size:.9rem;color:var(--muted)">${escapeHtml(s)} <span style="font-weight:400">(${siswa.length} siswa)</span></h4>
