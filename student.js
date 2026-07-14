@@ -7,33 +7,6 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 const { toast, btnLoading } = window.MPLSUI;
 
-// Anti-cheat scoring rules 
-export const PENALTY_RULES = {
-  tab_hidden: { points: 10, label: 'Pindah tab / minimize' },
-  blur:       { points: 8,  label: 'Kehilangan fokus jendela' },
-  copy:       { points: 8,  label: 'Copy / cut konten' },
-  paste:      { points: 5,  label: 'Paste konten' },
-};
-const MAX_VIOLATIONS_BEFORE_AUTOSUBMIT = 10;
-
-// Tulis log audit pelanggaran ke Firestore (collection: auditLogs)
-async function writeAuditLog({ profile, type, message, quizSet, penalty, meta = {} }) {
-  try {
-    await addDoc(collection(db, 'auditLogs'), {
-      userId: profile.uid,
-      name: profile.name || null,
-      gugus: profile.gugus || null,
-      kelas: profile.kelas || null,
-      type, message, quizSet: quizSet || null,
-      penalty: penalty || 0,
-      userAgent: navigator.userAgent,
-      url: location.pathname,
-      meta,
-      createdAt: serverTimestamp(),
-    });
-  } catch (e) { console.warn('audit log fail', e); }
-}
-
 let profile;
 let pageUnsubscribe = null;
 const content = document.getElementById('content');
@@ -238,9 +211,6 @@ async function renderQuiz(setName) {
   pageTitle.textContent = `Ujian · ${setName}`;
   const answers = {};
   const flagged = new Set();
-  let violationCount = 0;
-  let penaltyTotal = 0;
-  const violationLog = [];
   let current = 0;
   let started = true;
 
@@ -253,9 +223,9 @@ async function renderQuiz(setName) {
           <div class="exam-top">
             <div>
               <div class="ex-title">${setName}</div>
-              <div class="ex-sub">${qs.length} soal · Anti-cheat aktif (${MAX_VIOLATIONS_BEFORE_AUTOSUBMIT}x pelanggaran = auto-submit)</div>
+              <div class="ex-sub">${qs.length} soal</div>
             </div>
-            <span class="exam-pill" id="vPill"><i class="fa-solid fa-shield-halved"></i> Pelanggaran 0/${MAX_VIOLATIONS_BEFORE_AUTOSUBMIT}</span>
+            <span class="exam-pill" id="vPill" style="display:none"></span>
           </div>
           <div class="exam-body" id="qBody"></div>
           <div class="exam-nav">
@@ -276,8 +246,7 @@ async function renderQuiz(setName) {
           </div>
           <div class="exam-summary">
             Terjawab: <strong id="sAns">0</strong> / ${qs.length}<br>
-            Ditandai: <strong id="sFlag">0</strong><br>
-            Penalti: <strong id="sPen" style="color:#dc2626">−0</strong>
+            Ditandai: <strong id="sFlag">0</strong>
           </div>
           <button class="btn btn-primary btn-block" id="btnSubmitSide" style="margin-top:14px"><i class="fa-solid fa-paper-plane"></i> Kumpulkan Sekarang</button>
         </aside>
@@ -315,7 +284,6 @@ async function renderQuiz(setName) {
     }, 0);
     document.getElementById('sAns').textContent = countAnswered();
     document.getElementById('sFlag').textContent = flagged.size;
-    document.getElementById('sPen').textContent = '−' + penaltyTotal;
   };
 
   const renderQ = () => {
@@ -442,18 +410,17 @@ async function renderQuiz(setName) {
     const msg = unanswered > 0
       ? `Masih ada ${unanswered} soal belum dijawab. Yakin kumpulkan sekarang?`
       : 'Kumpulkan jawaban sekarang?';
-    if (confirm(msg)) submit(false, 'Submit normal');
+    if (confirm(msg)) submit();
   };
 
-  const submit = async (auto, reason='Submit normal') => {
+  const submit = async (reason='Submit normal') => {
     if (!started) return;
     cleanup();
     try {
       await addDoc(collection(db, 'answers'), {
         userId: profile.uid, name: profile.name || null, gugus: profile.gugus || null, kelas: profile.kelas || null,
         quizSet: setName, answers,
-        violations: violationCount, violationLog,
-        reason, status: 'submitted', autoSubmitted: !!auto,
+        reason, status: 'submitted',
         finalScore: null, gradedAt: null,
         createdAt: serverTimestamp()
       });
@@ -462,8 +429,7 @@ async function renderQuiz(setName) {
         <div class="result-card panel">
           <div class="card-icon" style="margin:0 auto 16px"><i class="fa-solid fa-circle-check"></i></div>
           <h3 style="font-family:var(--font-display);font-size:24px;margin-bottom:6px">Jawaban Terkirim</h3>
-          <p style="color:var(--muted);margin-bottom:20px">${reason}</p>
-          <p style="color:var(--muted);margin-bottom:16px;text-align:center">Jawabanmu akan dikoreksi oleh admin.</p>
+          <p style="color:var(--muted);margin-bottom:20px">Jawabanmu akan dikoreksi oleh admin.</p>
           <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
             <button class="btn btn-outline" onclick="document.querySelector('[data-page=soal]').click()">Kembali ke Soal</button>
             <button class="btn btn-primary" onclick="document.querySelector('[data-page=nilai]').click()">Lihat Nilai</button>
@@ -473,49 +439,10 @@ async function renderQuiz(setName) {
     } catch (e) { toast('Gagal kirim: ' + e.message, { type: 'error' }); }
   };
 
-  const refreshPenaltyUI = () => {
-    const p = document.getElementById('vPill');
-    if (p) {
-      p.innerHTML = `<i class="fa-solid fa-shield-halved"></i> Pelanggaran ${violationCount}/${MAX_VIOLATIONS_BEFORE_AUTOSUBMIT}`;
-      p.classList.toggle('warn', violationCount > 0);
-    }
-    const s = document.getElementById('sPen'); if (s) s.textContent = '−' + penaltyTotal;
-  };
-
-  const violate = (type) => {
-    if (!started) return;
-    const rule = PENALTY_RULES[type] || { points: 5, label: type };
-    violationCount++;
-    penaltyTotal += rule.points;
-    violationLog.push({ type, message: rule.label, penalty: rule.points, at: Date.now() });
-    refreshPenaltyUI();
-    writeAuditLog({ profile, type, message: rule.label, quizSet: setName, penalty: rule.points, meta: { violationCount, penaltyTotal } });
-    toast(`Pelanggaran: ${rule.label} (−${rule.points} poin)`, { type: 'warning', duration: 3500 });
-    if (violationCount >= MAX_VIOLATIONS_BEFORE_AUTOSUBMIT) {
-      const banner = document.createElement('div');
-      banner.className = 'warn-banner';
-      banner.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Batas pelanggaran tercapai. Sesi otomatis dikumpulkan.`;
-      document.body.appendChild(banner);
-      submit(true, 'Auto-submit: melebihi batas pelanggaran');
-      setTimeout(() => banner.remove(), 4500);
-    }
-  };
-
-  // Anti-cheat handlers (versi ringan, ramah HP)
-  const onVis = () => { if (document.hidden) violate('tab_hidden'); };
-  const onBlur = () => violate('blur');
-  const onCopy = (e) => { e.preventDefault(); violate('copy'); };
-  const onPaste = (e) => { e.preventDefault(); violate('paste'); };
   const onKey = (e) => {
-    // hanya panah kiri/kanan untuk navigasi soal — tidak menghitung pelanggaran
     if (e.key === 'ArrowRight' && !['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) go(current+1);
     if (e.key === 'ArrowLeft'  && !['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) go(current-1);
   };
-  document.addEventListener('visibilitychange', onVis);
-  window.addEventListener('blur', onBlur);
-  document.addEventListener('copy', onCopy);
-  document.addEventListener('cut', onCopy);
-  document.addEventListener('paste', onPaste);
   document.addEventListener('keydown', onKey);
 
   // === Mode mengerjakan soal: aktifkan fullscreen + sembunyikan tombol notifikasi ===
@@ -533,11 +460,6 @@ async function renderQuiz(setName) {
   document.addEventListener('click', fsRetry, { once: true });
 
   function cleanup() {
-    document.removeEventListener('visibilitychange', onVis);
-    window.removeEventListener('blur', onBlur);
-    document.removeEventListener('copy', onCopy);
-    document.removeEventListener('cut', onCopy);
-    document.removeEventListener('paste', onPaste);
     document.removeEventListener('keydown', onKey);
     document.removeEventListener('click', fsRetry);
     document.body.classList.remove('exam-mode');
