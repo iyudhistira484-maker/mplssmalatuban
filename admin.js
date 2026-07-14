@@ -756,6 +756,28 @@ window.gradeModal = async (id) => {
           const val = studentAns[ri]?.[0] || '';
           return `<tr><td>${ri+1}</td><td>${escapeHtml(label)}</td><td>${escapeHtml(val) || '<em style="color:var(--muted)">—</em>'}</td></tr>`;
         }).join('') + '</tbody></table></div>';
+      } else if (ans != null && typeof ans === 'object' && !Array.isArray(ans)) {
+        const keys = Object.keys(ans);
+        if (keys.length && keys.every(k => !isNaN(+k))) {
+          let maxCol = 0;
+          keys.forEach(k => { const inner = ans[k]; if (typeof inner === 'object') { Object.keys(inner).forEach(c => { if (+c > maxCol) maxCol = +c; }); } });
+          qHtml += '<div class="table-wrap" style="margin-top:6px"><table class="tbl" style="font-size:12px"><thead><tr><th style="width:30px">#</th>';
+          for (let c = 0; c <= maxCol; c++) qHtml += `<th style="text-align:center">Kolom ${c+1}</th>`;
+          qHtml += '</tr></thead><tbody>';
+          qHtml += keys.sort((a,b)=>+a-+b).map(k => {
+            const inner = ans[k] || {};
+            let cls = 'padding:4px 8px;font-size:.85rem';
+            return '<tr><td style="color:var(--muted);font-family:var(--font-mono);text-align:center">' + (+k+1) + '</td>' +
+              Array.from({length: maxCol+1}, (_, ci) => {
+                const v = inner[ci];
+                if (typeof v === 'boolean') return `<td style="text-align:center"><input type="checkbox" disabled ${v?'checked':''} style="width:16px;height:16px"></td>`;
+                return `<td style="${cls}">${escapeHtml(String(v ?? '')) || '<em style="color:var(--muted)">—</em>'}</td>`;
+              }).join('') + '</tr>';
+          }).join('');
+          qHtml += '</tbody></table></div>';
+        } else {
+          qHtml += `<div style="padding:8px 12px;background:var(--white);border-radius:6px;font-size:.85rem;border:1px solid var(--line)"><code>${escapeHtml(JSON.stringify(ans))}</code></div>`;
+        }
       } else {
         qHtml += `<div style="padding:8px 12px;background:var(--white);border-radius:6px;font-size:.85rem;border:1px solid var(--line)">${ans != null ? escapeHtml(String(ans)) : '<em style="color:var(--muted)">Tidak dijawab</em>'}</div>`;
       }
