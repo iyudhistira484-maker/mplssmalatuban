@@ -295,12 +295,18 @@ function bulkItemTemplate(idx, prefill={}) {
         </div>
       </div>
       <div class="bulk-table-checklist" style="${type!=='table_checklist'?'display:none':''}">
-        <div style="margin-top:8px">
-          <label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px">Daftar Item (satu per baris):</label>
-          <textarea data-checklist="rows" placeholder="Senam pagi&#10;Pengenalan OSIS&#10;Bakti sosial&#10;..." style="width:100%;min-height:60px;padding:8px;border:1px solid var(--line);border-radius:8px;font-size:13px"></textarea>
+        <div style="margin-top:8px;display:flex;gap:10px">
+          <div style="flex:1">
+            <label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px">Kolom Centang (satu per baris):</label>
+            <textarea data-checklist="cols" placeholder="Dengar&#10;Peduli&#10;Hargai&#10;..." style="width:100%;min-height:80px;padding:8px;border:1px solid var(--line);border-radius:8px;font-size:13px"></textarea>
+          </div>
+          <div style="flex:1">
+            <label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px">Baris Item (satu per baris):</label>
+            <textarea data-checklist="rows" placeholder="Senam pagi&#10;Pengenalan OSIS&#10;Bakti sosial&#10;..." style="width:100%;min-height:80px;padding:8px;border:1px solid var(--line);border-radius:8px;font-size:13px"></textarea>
+          </div>
         </div>
         <div class="tbl-preview" style="margin-top:6px;font-size:12px;color:var(--muted)">Preview akan tampil di sini...</div>
-        <div style="margin-top:6px;font-size:12px;color:var(--muted)">Siswa akan memberi <b>centang</b> pada setiap item.</div>
+        <div style="margin-top:6px;font-size:12px;color:var(--muted)">Siswa akan memberi <b>centang</b> pada setiap kolom untuk setiap item.</div>
       </div>
       <div class="bulk-table-fillin" style="${type!=='table_fillin'?'display:none':''}">
         <div style="margin-top:8px">
@@ -359,13 +365,16 @@ function openBulkModal() {
       if (!ta) return;
       const item = ta.closest('.bulk-item');
       const preview = item.querySelector('.tbl-preview');
-      const isChecklist = ta.matches('[data-checklist]');
-      const rows = ta.value.split('\n').map(s => s.trim()).filter(Boolean);
+      const rows = (item.querySelector('[data-checklist="rows"]')?.value || '').split('\n').map(s => s.trim()).filter(Boolean);
+      const colsText = (item.querySelector('[data-checklist="cols"]')?.value || '');
       if (!rows.length) { preview.innerHTML = 'Preview akan tampil di sini...'; return; }
       let h = '<div class="table-wrap"><table class="tbl" style="font-size:12px;margin:0">';
+      const isChecklist = ta.matches('[data-checklist]') || item.querySelector('.bulk-table-checklist')?.style.display !== 'none';
       if (isChecklist) {
-        h += '<thead><tr><th style="width:30px">No</th><th>Item</th><th style="width:40px;text-align:center">✔</th></tr></thead><tbody>';
-        h += rows.map((r,i) => `<tr><td>${i+1}</td><td>${escapeHtml(r)}</td><td style="text-align:center"><input type="checkbox" disabled style="width:14px;height:14px;margin:0"></td></tr>`).join('');
+        const colHeaders = colsText.split('\n').map(s => s.trim()).filter(Boolean);
+        const headers = colHeaders.length ? colHeaders : ['✔'];
+        h += '<thead><tr><th style="width:30px">No</th><th>Item</th>' + headers.map(c => `<th style="text-align:center;width:50px">${escapeHtml(c)}</th>`).join('') + '</tr></thead><tbody>';
+        h += rows.map((r,i) => '<tr><td>' + (i+1) + '</td><td>' + escapeHtml(r) + '</td>' + headers.map(() => '<td style="text-align:center"><input type="checkbox" disabled style="width:14px;height:14px;margin:0"></td>').join('') + '</tr>').join('');
       } else {
         h += '<thead><tr><th style="width:30px">No</th><th>Field</th><th>Jawaban</th></tr></thead><tbody>';
         h += rows.map((r,i) => `<tr><td>${i+1}</td><td>${escapeHtml(r)}</td><td><input type="text" disabled style="width:100%;padding:3px 5px;border:1px solid var(--line);border-radius:4px;font-size:11px" placeholder="..."></td></tr>`).join('');
@@ -373,7 +382,7 @@ function openBulkModal() {
       h += '</tbody></table></div>';
       preview.innerHTML = h;
     };
-    list.querySelectorAll('[data-checklist="rows"], [data-fillin="rows"]').forEach(ta => {
+    list.querySelectorAll('[data-checklist="rows"], [data-checklist="cols"], [data-fillin="rows"]').forEach(ta => {
       ta.oninput = () => updatePreview(ta);
       setTimeout(() => updatePreview(ta), 50);
     });
@@ -419,7 +428,9 @@ function openBulkModal() {
       } else if (type === 'table_checklist') {
         const rows = it.querySelector('[data-checklist="rows"]').value.trim().split('\n').map(s => s.trim()).filter(Boolean);
         if (!rows.length) { invalid++; return; }
-        data.tableConfig = { rows };
+        const cols = it.querySelector('[data-checklist="cols"]').value.trim().split('\n').map(s => s.trim()).filter(Boolean);
+        const columns = cols.length ? cols.map(c => ({ header: c })) : [{ header: '✔' }];
+        data.tableConfig = { columns, rows };
       } else if (type === 'table_fillin') {
         const rows = it.querySelector('[data-fillin="rows"]').value.trim().split('\n').map(s => s.trim()).filter(Boolean);
         if (!rows.length) { invalid++; return; }

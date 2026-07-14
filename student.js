@@ -329,13 +329,18 @@ async function renderQuiz(setName) {
         </label>`;
       }).join('') + '</div>';
     } else if (q.type === 'table_checklist' || q.type === 'tabel') {
-      const rows = q.tableConfig?.rows || [];
+      const cfg = q.tableConfig || { rows: [] };
+      const colDefs = cfg.columns || [{ header: '✔' }];
+      const rows = cfg.rows || [];
       const existing = answers[q.id] || {};
       inner += '<div class="table-wrap" style="margin-top:14px"><table class="tbl">';
-      inner += '<thead><tr><th style="width:40px">No</th><th>Item</th><th style="width:60px;text-align:center">✔</th></tr></thead>';
+      inner += '<thead><tr><th style="width:40px">No</th><th>Item</th>' + colDefs.map(c => `<th style="text-align:center">${escapeHtml(c.header)}</th>`).join('') + '</tr></thead>';
       inner += '<tbody>' + rows.map((label, ri) => {
-        const checked = existing[ri]?.[0] ? 'checked' : '';
-        return `<tr><td style="color:var(--muted);font-family:var(--font-mono)">${ri+1}</td><td>${escapeHtml(label)}</td><td style="text-align:center"><input type="checkbox" data-tr="${ri}" data-tc="0" ${checked} style="width:22px;height:22px;cursor:pointer"></td></tr>`;
+        return '<tr><td style="color:var(--muted);font-family:var(--font-mono)">' + (ri+1) + '</td><td>' + escapeHtml(label) + '</td>' +
+          colDefs.map((c, ci) => {
+            const checked = existing[ri]?.[ci] ? 'checked' : '';
+            return `<td style="text-align:center"><input type="checkbox" data-tr="${ri}" data-tc="${ci}" ${checked} style="width:22px;height:22px;cursor:pointer"></td>`;
+          }).join('') + '</tr>';
       }).join('') + '</tbody></table></div>';
     } else if (q.type === 'table_fillin') {
       const rows = q.tableConfig?.rows || [];
