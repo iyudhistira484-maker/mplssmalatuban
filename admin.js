@@ -669,7 +669,7 @@ async function pageJawaban() {
     if (countEl) countEl.textContent = `(${total})`;
     const container = document.getElementById('jawabanGroups');
     container.innerHTML = groups.map(g => {
-      const list = items.filter(a => a.gugus === g);
+      const list = items.filter(a => a.gugus === g).sort((a,b) => (a.quizSet||'').localeCompare(b.quizSet||'') || (a.name||'').localeCompare(b.name||''));
       const rows = list.map(a => `<tr>
         <td><strong>${a.name}</strong><br><small style="color:var(--muted)">${a.kelas||''}</small></td>
         <td>${a.quizSet}</td>
