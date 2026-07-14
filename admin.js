@@ -669,20 +669,33 @@ async function pageJawaban() {
     if (countEl) countEl.textContent = `(${total})`;
     const container = document.getElementById('jawabanGroups');
     container.innerHTML = groups.map(g => {
-      const list = items.filter(a => a.gugus === g).sort((a,b) => (a.quizSet||'').localeCompare(b.quizSet||'') || (a.name||'').localeCompare(b.name||''));
-      const rows = list.map(a => `<tr>
-        <td><strong>${a.name}</strong><br><small style="color:var(--muted)">${a.kelas||''}</small></td>
-        <td>${a.quizSet}</td>
-        <td>${a.violations ? `<span class="badge red">${a.violations}</span>` : '<span class="badge green">0</span>'}</td>
-        <td>${a.finalScore!=null?`<strong>${a.finalScore}</strong>`:'<span class="badge gold">Belum</span>'}</td>
-        <td><button class="btn btn-outline" onclick="window.gradeModal('${a.id}')"><i class="fa-solid fa-pen"></i> Nilai</button></td>
-      </tr>`).join('');
+      const list = items.filter(a => a.gugus === g);
+      const setMap = {};
+      list.forEach(a => {
+        const s = a.quizSet || '(tanpa set)';
+        if (!setMap[s]) setMap[s] = [];
+        setMap[s].push(a);
+      });
+      const setKeys = Object.keys(setMap).sort((a,b) => a.localeCompare(b));
+      const sections = setKeys.map(s => {
+        const siswa = setMap[s].sort((a,b) => (a.name||'').localeCompare(b.name||''));
+        const rows = siswa.map(a => `<tr>
+          <td><strong>${a.name}</strong><br><small style="color:var(--muted)">${a.kelas||''}</small></td>
+          <td>${a.violations ? `<span class="badge red">${a.violations}</span>` : '<span class="badge green">0</span>'}</td>
+          <td>${a.finalScore!=null?`<strong>${a.finalScore}</strong>`:'<span class="badge gold">Belum</span>'}</td>
+          <td><button class="btn btn-outline" onclick="window.gradeModal('${a.id}')"><i class="fa-solid fa-pen"></i> Nilai</button></td>
+        </tr>`).join('');
+        return `<div style="margin-bottom:16px">
+          <h4 style="margin:0 0 8px;font-size:.9rem;color:var(--muted)">${escapeHtml(s)} <span style="font-weight:400">(${siswa.length} siswa)</span></h4>
+          <div class="table-wrap"><table class="tbl">
+            <thead><tr><th>Siswa</th><th>Pelanggaran</th><th>Nilai Akhir</th><th>Aksi</th></tr></thead>
+            <tbody>${rows || `<tr><td colspan="4" class="empty">Belum ada jawaban</td></tr>`}</tbody>
+          </table></div>
+        </div>`;
+      }).join('');
       return `<div class="panel">
         <div class="panel-head"><h3 style="font-size:1rem">${escapeHtml(g)} <span style="font-weight:400;color:var(--muted);font-size:.85rem">(${list.length} siswa)</span></h3></div>
-        <div class="table-wrap"><table class="tbl">
-          <thead><tr><th>Siswa</th><th>Set</th><th>Pelanggaran</th><th>Nilai Akhir</th><th>Aksi</th></tr></thead>
-          <tbody>${rows || `<tr><td colspan="5" class="empty">Belum ada jawaban</td></tr>`}</tbody>
-        </table></div>
+        <div style="padding:0 24px 24px">${sections || '<div style="padding:24px;color:var(--muted);text-align:center">Belum ada jawaban</div>'}</div>
       </div>`;
     }).join('');
   };
