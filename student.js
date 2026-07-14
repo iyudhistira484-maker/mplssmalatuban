@@ -290,7 +290,7 @@ async function renderQuiz(setName) {
     const isAnswered = (q) => {
       const v = answers[q.id];
       if (v === undefined || v === '') return false;
-      if (q.type === 'tabel') return typeof v === 'object' && Object.keys(v).length > 0;
+      if (q.type === 'table_checklist' || q.type === 'table_fillin') return typeof v === 'object' && Object.keys(v).length > 0;
       return true;
     };
     p.innerHTML = qs.map((_,i) => {
@@ -304,7 +304,7 @@ async function renderQuiz(setName) {
     const countAnswered = () => qs.reduce((sum, q) => {
       const v = answers[q.id];
       if (v === undefined || v === '') return sum;
-      if (q.type === 'tabel') return sum + (typeof v === 'object' && Object.keys(v).length > 0 ? 1 : 0);
+      if (q.type === 'table_checklist' || q.type === 'table_fillin') return sum + (typeof v === 'object' && Object.keys(v).length > 0 ? 1 : 0);
       return sum + 1;
     }, 0);
     document.getElementById('sAns').textContent = countAnswered();
@@ -315,7 +315,7 @@ async function renderQuiz(setName) {
   const renderQ = () => {
     const q = qs[current];
     const body = document.getElementById('qBody');
-    const typeLabel = q.type === 'mcq' ? 'Pilihan Ganda' : q.type === 'tabel' ? 'Tabel Centang/Isian' : 'Isian Singkat';
+    const typeLabel = q.type === 'mcq' ? 'Pilihan Ganda' : q.type === 'table_checklist' ? 'Tabel Centang' : q.type === 'table_fillin' ? 'Tabel Isian' : 'Isian Singkat';
     let inner = `
       <div class="exam-qnum">SOAL ${current+1} DARI ${qs.length} · ${typeLabel}</div>
       <div class="exam-qtext">${escapeHtml(q.text)}</div>`;
@@ -328,26 +328,24 @@ async function renderQuiz(setName) {
           <span>${escapeHtml(opt)}</span>
         </label>`;
       }).join('') + '</div>';
-    } else if (q.type === 'tabel') {
-      const cfg = q.tableConfig || { columns: [], rows: [] };
+    } else if (q.type === 'table_checklist') {
+      const rows = q.tableConfig?.rows || [];
       const existing = answers[q.id] || {};
       inner += '<div class="table-wrap" style="margin-top:14px"><table class="tbl">';
-      inner += '<thead><tr><th>#</th>' + cfg.columns.map(c => `<th>${escapeHtml(c.header)}</th>`).join('') + '</tr></thead>';
-      inner += '<tbody>' + cfg.rows.map((label, ri) => {
-        const rowData = existing[ri] || {};
-        return '<tr><td style="font-weight:600;white-space:nowrap">' + escapeHtml(label) + '</td>' +
-          cfg.columns.map((c, ci) => {
-            if (c.type === 'checkbox') {
-              const checked = rowData[ci] ? 'checked' : '';
-              return `<td style="text-align:center"><input type="checkbox" data-tr="${ri}" data-tc="${ci}" ${checked} style="width:22px;height:22px;cursor:pointer"></td>`;
-            } else if (c.type === 'text') {
-              const val = rowData[ci] || '';
-              return `<td><input type="text" data-tr="${ri}" data-tc="${ci}" value="${escapeAttr(val)}" style="width:100%;min-width:100px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;font-size:13px"></td>`;
-            }
-            return '<td></td>';
-          }).join('') + '</tr>';
-      }).join('') + '</tbody>';
-      inner += '</table></div>';
+      inner += '<thead><tr><th style="width:40px">No</th><th>Item</th><th style="width:60px;text-align:center">✔</th></tr></thead>';
+      inner += '<tbody>' + rows.map((label, ri) => {
+        const checked = existing[ri]?.[0] ? 'checked' : '';
+        return `<tr><td style="color:var(--muted);font-family:var(--font-mono)">${ri+1}</td><td>${escapeHtml(label)}</td><td style="text-align:center"><input type="checkbox" data-tr="${ri}" data-tc="0" ${checked} style="width:22px;height:22px;cursor:pointer"></td></tr>`;
+      }).join('') + '</tbody></table></div>';
+    } else if (q.type === 'table_fillin') {
+      const rows = q.tableConfig?.rows || [];
+      const existing = answers[q.id] || {};
+      inner += '<div class="table-wrap" style="margin-top:14px"><table class="tbl">';
+      inner += '<thead><tr><th style="width:40px">No</th><th>Field</th><th>Jawaban</th></tr></thead>';
+      inner += '<tbody>' + rows.map((label, ri) => {
+        const val = existing[ri]?.[0] || '';
+        return `<tr><td style="color:var(--muted);font-family:var(--font-mono)">${ri+1}</td><td>${escapeHtml(label)}</td><td><input type="text" data-tr="${ri}" data-tc="0" value="${escapeAttr(val)}" style="width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;font-size:13px"></td></tr>`;
+      }).join('') + '</tbody></table></div>';
     } else {
       inner += `<input class="exam-text-input" type="text" id="txtAns" placeholder="Ketik jawabanmu di sini..." value="${escapeAttr(answers[q.id] || '')}">`;
     }
@@ -364,7 +362,7 @@ async function renderQuiz(setName) {
           renderPalette();
         });
       });
-    } else if (q.type === 'tabel') {
+    } else if (q.type === 'table_checklist' || q.type === 'table_fillin') {
       body.querySelectorAll('[data-tr]').forEach(el => {
         const ri = +el.dataset.tr;
         const ci = +el.dataset.tc;
@@ -414,7 +412,7 @@ async function renderQuiz(setName) {
     const answered = qs.reduce((sum, q) => {
       const v = answers[q.id];
       if (v === undefined || v === '') return sum;
-      if (q.type === 'tabel') return sum + (typeof v === 'object' && Object.keys(v).length > 0 ? 1 : 0);
+      if (q.type === 'table_checklist' || q.type === 'table_fillin') return sum + (typeof v === 'object' && Object.keys(v).length > 0 ? 1 : 0);
       return sum + 1;
     }, 0);
     const unanswered = qs.length - answered;

@@ -223,8 +223,8 @@ async function pageSoal() {
     ${list.map((q,i)=>`<tr>
       <td style="width:50px;color:var(--muted);font-family:var(--font-mono)">${i+1}</td>
       <td style="max-width:480px">${escapeHtml(q.text)}</td>
-      <td><span class="badge ${q.type==='mcq'?'blue':q.type==='tabel'?'gray':'gold'}">${q.type==='mcq'?'Pilihan Ganda':q.type==='tabel'?'Tabel':'Isian'}</span></td>
-      <td>${q.type==='mcq'?`<small style="color:var(--muted)">${(q.options||[]).length} opsi · benar: ${String.fromCharCode(65+(q.correctIndex||0))}</small>`:q.type==='tabel'?`<small style="color:var(--muted)">${(q.tableConfig?.rows||[]).length} baris × ${(q.tableConfig?.columns||[]).length} kolom</small>`:'<small style="color:var(--muted)">—</small>'}</td>
+      <td><span class="badge ${q.type==='mcq'?'blue':q.type==='table_checklist'||q.type==='table_fillin'?'gray':'gold'}">${q.type==='mcq'?'Pilihan Ganda':q.type==='table_checklist'?'Tbl Centang':q.type==='table_fillin'?'Tbl Isian':'Isian'}</span></td>
+      <td>${q.type==='mcq'?`<small style="color:var(--muted)">${(q.options||[]).length} opsi · benar: ${String.fromCharCode(65+(q.correctIndex||0))}</small>`:q.type==='table_checklist'||q.type==='table_fillin'?`<small style="color:var(--muted)">${(q.tableConfig?.rows||[]).length} baris</small>`:'<small style="color:var(--muted)">—</small>'}</td>
       <td><div class="q-actions">
         <button class="btn btn-danger" onclick="window.delQ('${q.id}')"><i class="fa-solid fa-trash"></i></button>
       </div></td>
@@ -280,11 +280,12 @@ function bulkItemTemplate(idx, prefill={}) {
         <select data-k="type">
           <option value="mcq"${type==='mcq'?' selected':''}>Pilihan Ganda</option>
           <option value="text"${type==='text'?' selected':''}>Isian Singkat</option>
-          <option value="tabel"${type==='tabel'?' selected':''}>Tabel Centang/Isian</option>
+          <option value="table_checklist"${type==='table_checklist'?' selected':''}>Tabel Centang</option>
+          <option value="table_fillin"${type==='table_fillin'?' selected':''}>Tabel Isian</option>
         </select>
         <textarea data-k="text" placeholder="Tulis pertanyaan...">${escapeHtml(prefill.text||'')}</textarea>
       </div>
-      <div class="bulk-mcq" style="${type==='text'||type==='tabel'?'display:none':''}">
+      <div class="bulk-mcq" style="${type!=='mcq'?'display:none':''}">
         <textarea data-k="opts" placeholder="Pilihan A&#10;Pilihan B&#10;Pilihan C&#10;Pilihan D">${escapeHtml((prefill.options||[]).join('\n'))}</textarea>
         <div class="bi-row">
           <select data-k="cor">
@@ -293,16 +294,19 @@ function bulkItemTemplate(idx, prefill={}) {
           <div style="font-size:12px;color:var(--muted);align-self:center">Pisahkan tiap pilihan dengan baris baru.</div>
         </div>
       </div>
-      <div class="bulk-tabel" style="${type!=='tabel'?'display:none':''}">
+      <div class="bulk-table-checklist" style="${type!=='table_checklist'?'display:none':''}">
         <div style="margin-top:8px">
-          <label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px">Definisi Kolom (header|type):</label>
-          <textarea data-tabel="cols" placeholder="Kegiatan|checkbox&#10;Sudah?|checkbox&#10;Keterangan|text" style="width:100%;min-height:50px;padding:8px;border:1px solid var(--line);border-radius:8px;font-size:13px"></textarea>
+          <label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px">Daftar Item (satu per baris):</label>
+          <textarea data-checklist="rows" placeholder="Senam pagi&#10;Pengenalan OSIS&#10;Bakti sosial&#10;..." style="width:100%;min-height:60px;padding:8px;border:1px solid var(--line);border-radius:8px;font-size:13px"></textarea>
         </div>
+        <div style="margin-top:6px;font-size:12px;color:var(--muted)">Siswa akan memberi <b>centang</b> pada setiap item.</div>
+      </div>
+      <div class="bulk-table-fillin" style="${type!=='table_fillin'?'display:none':''}">
         <div style="margin-top:8px">
-          <label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px">Label Baris (satu per baris):</label>
-          <textarea data-tabel="rows" placeholder="Senam pagi&#10;Pengenalan OSIS&#10;..." style="width:100%;min-height:50px;padding:8px;border:1px solid var(--line);border-radius:8px;font-size:13px"></textarea>
+          <label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px">Daftar Field (satu per baris):</label>
+          <textarea data-fillin="rows" placeholder="Nama lengkap&#10;Kelas&#10;Cita-cita&#10;..." style="width:100%;min-height:60px;padding:8px;border:1px solid var(--line);border-radius:8px;font-size:13px"></textarea>
         </div>
-        <div style="margin-top:8px;font-size:12px;color:var(--muted)">Tipe: <b>checkbox</b> = centang, <b>text</b> = isian teks. Header kolom pertama biasanya label baris.</div>
+        <div style="margin-top:6px;font-size:12px;color:var(--muted)">Siswa akan <b>mengetik jawaban</b> pada setiap field.</div>
       </div>
     </div>`;
 }
@@ -317,7 +321,7 @@ function openBulkModal() {
         <label>Jumlah:</label>
         <input id="bCount" type="number" min="1" max="50" value="10" style="width:80px">
         <label>Tipe default:</label>
-        <select id="bType"><option value="mcq">Pilihan Ganda</option><option value="text">Isian Singkat</option><option value="tabel">Tabel Centang/Isian</option><option value="mix">Campuran</option></select>
+        <select id="bType"><option value="mcq">Pilihan Ganda</option><option value="text">Isian Singkat</option><option value="table_checklist">Tabel Centang</option><option value="table_fillin">Tabel Isian</option><option value="mix">Campuran</option></select>
         <button class="btn btn-outline" id="bGen"><i class="fa-solid fa-wand-magic-sparkles"></i> Buat Slot</button>
         <button class="btn btn-ghost" id="bAdd1"><i class="fa-solid fa-plus"></i> Tambah 1</button>
       </div>
@@ -344,15 +348,16 @@ function openBulkModal() {
     list.querySelectorAll('[data-k="type"]').forEach(s => s.onchange = (e) => {
       const item = e.target.closest('.bulk-item');
       const val = e.target.value;
-      item.querySelector('.bulk-mcq').style.display = val==='text' || val==='tabel' ? 'none' : '';
-      item.querySelector('.bulk-tabel').style.display = val==='tabel' ? '' : 'none';
+      item.querySelector('.bulk-mcq').style.display = val==='mcq' ? '' : 'none';
+      item.querySelector('.bulk-table-checklist').style.display = val==='table_checklist' ? '' : 'none';
+      item.querySelector('.bulk-table-fillin').style.display = val==='table_fillin' ? '' : 'none';
     });
   };
   const generate = (n, defType) => {
     list.innerHTML = '';
-    const types = ['mcq', 'text', 'tabel'];
+    const types = ['mcq', 'text', 'table_checklist', 'table_fillin'];
     for (let i = 0; i < n; i++) {
-      const t = defType === 'mix' ? types[i % 3] : defType;
+      const t = defType === 'mix' ? types[i % 4] : defType;
       list.insertAdjacentHTML('beforeend', bulkItemTemplate(i, { type: t }));
     }
     wire();
@@ -386,17 +391,14 @@ function openBulkModal() {
         data.options = opts;
         data.correctIndex = +it.querySelector('[data-k="cor"]').value;
         if (data.correctIndex >= opts.length) data.correctIndex = 0;
-      } else if (type === 'tabel') {
-        const colsText = it.querySelector('[data-tabel="cols"]').value.trim();
-        const rowsText = it.querySelector('[data-tabel="rows"]').value.trim();
-        if (!colsText || !rowsText) { invalid++; return; }
-        const columns = colsText.split('\n').map(s => {
-          const parts = s.split('|').map(x => x.trim());
-          return { header: parts[0] || '', type: parts[1] || 'checkbox' };
-        }).filter(c => c.header);
-        const rows = rowsText.split('\n').map(s => s.trim()).filter(Boolean);
-        if (!columns.length || !rows.length) { invalid++; return; }
-        data.tableConfig = { columns, rows };
+      } else if (type === 'table_checklist') {
+        const rows = it.querySelector('[data-checklist="rows"]').value.trim().split('\n').map(s => s.trim()).filter(Boolean);
+        if (!rows.length) { invalid++; return; }
+        data.tableConfig = { rows };
+      } else if (type === 'table_fillin') {
+        const rows = it.querySelector('[data-fillin="rows"]').value.trim().split('\n').map(s => s.trim()).filter(Boolean);
+        if (!rows.length) { invalid++; return; }
+        data.tableConfig = { rows };
       }
       items.push(data);
     });
