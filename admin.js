@@ -650,36 +650,41 @@ async function pageJawaban() {
   const qSnap = await getDocs(collection(db, 'questions'));
   questionsCache = [];
   qSnap.forEach(d => questionsCache.push({ id: d.id, ...d.data() }));
-  const filter = `<select id="fGugus" style="padding:8px 12px;border:1px solid var(--line);border-radius:10px"><option value="">Semua Gugus</option>${SCHOOL_CONFIG.groups.map(g=>`<option>${g}</option>`).join('')}</select>`;
   content.innerHTML = `
     <div class="panel">
       <div class="panel-head">
         <h3>Jawaban Siswa <span id="jawabanCount">(0)</span></h3>
-        <div class="actions" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-          ${filter}
+        <div class="actions">
           <button class="btn btn-danger" id="btnResetNilai" title="Hapus semua nilai & jawaban siswa (reset progres)"><i class="fa-solid fa-trash-can"></i> Hapus Semua Nilai</button>
         </div>
       </div>
-      <div class="table-wrap"><table class="tbl" id="tblA">
-        <thead><tr><th>Siswa</th><th>Gugus</th><th>Set</th><th>Pelanggaran</th><th>Nilai Akhir</th><th>Aksi</th></tr></thead>
-        <tbody></tbody>
-      </table></div>
-    </div>`;
+    </div>
+    <div id="jawabanGroups"></div>`;
   document.getElementById('btnResetNilai').onclick = () => window.resetAllNilai();
   const items = [];
-  const render = (filterG='') => {
-    const tbody = content.querySelector('tbody');
-    const list = items.filter(a => !filterG || a.gugus===filterG);
+  const groups = SCHOOL_CONFIG.groups;
+  const render = () => {
+    const total = items.length;
     const countEl = document.getElementById('jawabanCount');
-    if (countEl) countEl.textContent = `(${items.length})`;
-    tbody.innerHTML = list.map(a => `<tr>
-      <td><strong>${a.name}</strong><br><small style="color:var(--muted)">${a.kelas||''}</small></td>
-      <td><span class="badge blue">${a.gugus||'-'}</span></td>
-      <td>${a.quizSet}</td>
-      <td>${a.violations ? `<span class="badge red">${a.violations}</span>` : '<span class="badge green">0</span>'}</td>
-      <td>${a.finalScore!=null?`<strong>${a.finalScore}</strong>`:'<span class="badge gold">Belum</span>'}</td>
-      <td><button class="btn btn-outline" onclick="window.gradeModal('${a.id}')"><i class="fa-solid fa-pen"></i> Nilai</button></td>
-    </tr>`).join('') || `<tr><td colspan="6" class="empty">Belum ada jawaban</td></tr>`;
+    if (countEl) countEl.textContent = `(${total})`;
+    const container = document.getElementById('jawabanGroups');
+    container.innerHTML = groups.map(g => {
+      const list = items.filter(a => a.gugus === g);
+      const rows = list.map(a => `<tr>
+        <td><strong>${a.name}</strong><br><small style="color:var(--muted)">${a.kelas||''}</small></td>
+        <td>${a.quizSet}</td>
+        <td>${a.violations ? `<span class="badge red">${a.violations}</span>` : '<span class="badge green">0</span>'}</td>
+        <td>${a.finalScore!=null?`<strong>${a.finalScore}</strong>`:'<span class="badge gold">Belum</span>'}</td>
+        <td><button class="btn btn-outline" onclick="window.gradeModal('${a.id}')"><i class="fa-solid fa-pen"></i> Nilai</button></td>
+      </tr>`).join('');
+      return `<div class="panel">
+        <div class="panel-head"><h3 style="font-size:1rem">${escapeHtml(g)} <span style="font-weight:400;color:var(--muted);font-size:.85rem">(${list.length} siswa)</span></h3></div>
+        <div class="table-wrap"><table class="tbl">
+          <thead><tr><th>Siswa</th><th>Set</th><th>Pelanggaran</th><th>Nilai Akhir</th><th>Aksi</th></tr></thead>
+          <tbody>${rows || `<tr><td colspan="5" class="empty">Belum ada jawaban</td></tr>`}</tbody>
+        </table></div>
+      </div>`;
+    }).join('');
   };
   pageUnsubscribe = onSnapshot(collection(db, 'answers'), (snap) => {
     snap.docChanges().forEach(change => {
@@ -694,10 +699,8 @@ async function pageJawaban() {
         if (idx !== -1) items.splice(idx, 1);
       }
     });
-    const gugus = document.getElementById('fGugus')?.value || '';
-    render(gugus);
+    render();
   });
-  document.getElementById('fGugus').onchange = (e) => render(e.target.value);
 }
 
 window.gradeModal = async (id) => {
