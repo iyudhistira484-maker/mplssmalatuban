@@ -707,9 +707,6 @@ window.gradeModal = async (id) => {
   const qIds = Object.keys(a.answers || {});
   if (!qIds.length) return toast('Tidak ada jawaban untuk dinilai', { type: 'warning' });
 
-  const correct = {};
-  a.answers && Object.keys(a.answers).forEach(k => { correct[k] = false; });
-
   let totalPoints = 100;
   let perQuestion = totalPoints / qIds.length;
 

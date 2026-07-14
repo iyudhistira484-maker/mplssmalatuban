@@ -290,7 +290,7 @@ async function renderQuiz(setName) {
     const isAnswered = (q) => {
       const v = answers[q.id];
       if (v === undefined || v === '') return false;
-      if (q.type === 'table_checklist' || q.type === 'tabel' || q.type === 'table_fillin') return typeof v === 'object' && Object.keys(v).length > 0;
+      if (q.type === 'table_checklist' || q.type === 'tabel' || q.type === 'table_fillin') return typeof v === 'object' && v !== null && Object.keys(v).length > 0;
       return true;
     };
     p.innerHTML = qs.map((_,i) => {
@@ -304,7 +304,7 @@ async function renderQuiz(setName) {
     const countAnswered = () => qs.reduce((sum, q) => {
       const v = answers[q.id];
       if (v === undefined || v === '') return sum;
-      if (q.type === 'table_checklist' || q.type === 'tabel' || q.type === 'table_fillin') return sum + (typeof v === 'object' && Object.keys(v).length > 0 ? 1 : 0);
+      if (q.type === 'table_checklist' || q.type === 'tabel' || q.type === 'table_fillin') return sum + (typeof v === 'object' && v !== null && Object.keys(v).length > 0 ? 1 : 0);
       return sum + 1;
     }, 0);
     document.getElementById('sAns').textContent = countAnswered();
@@ -375,14 +375,26 @@ async function renderQuiz(setName) {
           el.onchange = () => {
             if (!answers[q.id]) answers[q.id] = {};
             if (!answers[q.id][ri]) answers[q.id][ri] = {};
-            answers[q.id][ri][ci] = el.checked;
+            if (el.checked) {
+              answers[q.id][ri][ci] = true;
+            } else {
+              delete answers[q.id][ri][ci];
+              if (Object.keys(answers[q.id][ri]).length === 0) delete answers[q.id][ri];
+              if (Object.keys(answers[q.id]).length === 0) delete answers[q.id];
+            }
             renderPalette();
           };
         } else if (el.type === 'text') {
           el.oninput = () => {
             if (!answers[q.id]) answers[q.id] = {};
             if (!answers[q.id][ri]) answers[q.id][ri] = {};
-            answers[q.id][ri][ci] = el.value;
+            if (el.value) {
+              answers[q.id][ri][ci] = el.value;
+            } else {
+              delete answers[q.id][ri][ci];
+              if (Object.keys(answers[q.id][ri]).length === 0) delete answers[q.id][ri];
+              if (Object.keys(answers[q.id]).length === 0) delete answers[q.id];
+            }
             renderPalette();
           };
         }
@@ -417,7 +429,7 @@ async function renderQuiz(setName) {
     const answered = qs.reduce((sum, q) => {
       const v = answers[q.id];
       if (v === undefined || v === '') return sum;
-      if (q.type === 'table_checklist' || q.type === 'tabel' || q.type === 'table_fillin') return sum + (typeof v === 'object' && Object.keys(v).length > 0 ? 1 : 0);
+      if (q.type === 'table_checklist' || q.type === 'tabel' || q.type === 'table_fillin') return sum + (typeof v === 'object' && v !== null && Object.keys(v).length > 0 ? 1 : 0);
       return sum + 1;
     }, 0);
     const unanswered = qs.length - answered;
