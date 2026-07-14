@@ -188,8 +188,17 @@ document.getElementById('formAdmin').addEventListener('submit', async (e) => {
   btnLoading(btn, true, 'Memverifikasi...');
   try {
     const user = await loginEmail(fd.get('email'), fd.get('password'));
-    const profile = await getUserProfile(user.uid);
-    if (!profile || profile.role !== 'admin') {
+    let profile;
+    try {
+      profile = await getUserProfile(user.uid);
+    } catch (_) {
+      profile = null;
+    }
+    if (!profile) {
+      toast('Akun tidak ditemukan di database. Silakan hubungi admin.', { type: 'error' });
+      await logout(); btnLoading(btn, false); return;
+    }
+    if (profile.role !== 'admin') {
       toast('Akun ini bukan akun admin.', { type: 'error' });
       await logout(); btnLoading(btn, false); return;
     }

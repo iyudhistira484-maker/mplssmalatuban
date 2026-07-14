@@ -615,7 +615,13 @@ function openAddModal() {
 window.editS = async (id) => {
   let item = scheduleItems.find(x => x.id === id);
   if (!item) {
-    const snap = await getDoc(doc(db, 'schedule', id));
+    let snap;
+    try {
+      snap = await getDoc(doc(db, 'schedule', id));
+    } catch (e) {
+      toast('Gagal memuat data jadwal: ' + e.message, { type:'error' });
+      return;
+    }
     if (!snap.exists()) return toast('Data tidak ditemukan', { type:'error' });
     item = { id: snap.id, ...snap.data() };
   }
@@ -724,11 +730,20 @@ async function pageJawaban() {
       }
     });
     render();
+  }, (err) => {
+    console.error('[admin] answers snapshot error', err);
+    toast('Gagal memuat jawaban real-time: ' + err.message, { type: 'error' });
   });
 }
 
 window.gradeModal = async (id) => {
-  const snap = await getDoc(doc(db, 'answers', id));
+  let snap;
+  try {
+    snap = await getDoc(doc(db, 'answers', id));
+  } catch (e) {
+    toast('Gagal memuat data jawaban: ' + e.message, { type: 'error' });
+    return;
+  }
   if (!snap.exists()) return toast('Data tidak ditemukan', { type: 'error' });
   const a = { id: snap.id, ...snap.data() };
   const qIds = Object.keys(a.answers || {});

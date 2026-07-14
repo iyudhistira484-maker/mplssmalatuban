@@ -10,11 +10,16 @@ import {
 
 export async function registerStudent({ name, email, password, nis, gugus }) {
   const cred = await createUserWithEmailAndPassword(auth, email.trim(), password.trim());
-  await setDoc(doc(db, 'users', cred.user.uid), {
-    role: 'student',
-    name, email, nis, gugus,
-    createdAt: serverTimestamp()
-  });
+  try {
+    await setDoc(doc(db, 'users', cred.user.uid), {
+      role: 'student',
+      name, email, nis, gugus,
+      createdAt: serverTimestamp()
+    });
+  } catch (err) {
+    await cred.user.delete().catch(() => {});
+    throw err;
+  }
   return cred.user;
 }
 
@@ -26,8 +31,12 @@ export async function loginEmail(email, password) {
 export async function logout() { await signOut(auth); }
 
 export async function getUserProfile(uid) {
-  const snap = await getDoc(doc(db, 'users', uid));
-  return snap.exists() ? { uid, ...snap.data() } : null;
+  try {
+    const snap = await getDoc(doc(db, 'users', uid));
+    return snap.exists() ? { uid, ...snap.data() } : null;
+  } catch {
+    return null;
+  }
 }
 
 export function onAuth(cb) { return onAuthStateChanged(auth, cb); }
@@ -47,24 +56,28 @@ export function guardRoute(requiredRole, redirect = 'login.html') {
         unsub(); return;
       }
       if (profile.role === 'student' && !window.__skipAttendanceCheck) {
-        const today = new Date().toISOString().slice(0,10);
-        const attRef = doc(db, 'attendance', `${user.uid}_${today}`);
-        const att = await getDoc(attRef);
-        if (!att.exists()) {
-          if (!location.pathname.endsWith('attendance.html')) {
-            window.location.href = 'attendance.html'; unsub(); return;
-          }
-        } else {
-          const st = att.data().status;
-          if (st === 'hadir') {
-            if (location.pathname.endsWith('attendance.html')) {
-              window.location.href = 'student.html'; unsub(); return;
+        try {
+          const today = new Date().toISOString().slice(0,10);
+          const attRef = doc(db, 'attendance', `${user.uid}_${today}`);
+          const att = await getDoc(attRef);
+          if (!att.exists()) {
+            if (!location.pathname.endsWith('attendance.html')) {
+              window.location.href = 'attendance.html'; unsub(); return;
             }
           } else {
-            if (location.pathname.endsWith('student.html')) {
-              window.location.href = 'access-denied.html'; unsub(); return;
+            const st = att.data().status;
+            if (st === 'hadir') {
+              if (location.pathname.endsWith('attendance.html')) {
+                window.location.href = 'student.html'; unsub(); return;
+              }
+            } else {
+              if (location.pathname.endsWith('student.html')) {
+                window.location.href = 'access-denied.html'; unsub(); return;
+              }
             }
           }
+        } catch (_) {
+          console.warn('[guardRoute] attendance check failed, proceeding', _);
         }
       }
       resolve(profile);

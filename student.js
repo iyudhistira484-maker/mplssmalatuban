@@ -224,7 +224,13 @@ window.loadPage = loadPage;
 
 // ===== Quiz with Anti-Cheat (International Exam UI) =====
 async function renderQuiz(setName) {
-  const snap = await getDocs(query(collection(db, 'questions'), where('quizSet','==',setName)));
+  let snap;
+  try {
+    snap = await getDocs(query(collection(db, 'questions'), where('quizSet','==',setName)));
+  } catch (e) {
+    toast('Gagal memuat soal: ' + e.message, { type: 'error' });
+    return;
+  }
   const qs = []; snap.forEach(d => qs.push({ id: d.id, ...d.data() }));
   qs.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity) || (a.createdAt?.toMillis?.() || 0) - (b.createdAt?.toMillis?.() || 0));
   if (!qs.length) return toast('Soal kosong', { type: 'warning' });
@@ -440,7 +446,7 @@ async function renderQuiz(setName) {
   };
 
   const submit = async (auto, reason='Submit normal') => {
-    if (!started) return; started = false;
+    if (!started) return;
     cleanup();
     try {
       await addDoc(collection(db, 'answers'), {
@@ -451,6 +457,7 @@ async function renderQuiz(setName) {
         finalScore: null, gradedAt: null,
         createdAt: serverTimestamp()
       });
+      started = false;
       content.innerHTML = `
         <div class="result-card panel">
           <div class="card-icon" style="margin:0 auto 16px"><i class="fa-solid fa-circle-check"></i></div>

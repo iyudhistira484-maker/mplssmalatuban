@@ -253,8 +253,18 @@ document.getElementById('formLogin').addEventListener('submit', async (e) => {
   btnLoading(btn, true, 'Memverifikasi...');
   try {
     const user = await loginEmail(fd.get('email'), fd.get('password'));
-    const profile = await getUserProfile(user.uid);
-    if (!profile || profile.role !== 'student') {
+    let profile;
+    try {
+      profile = await getUserProfile(user.uid);
+    } catch (_) {
+      profile = null;
+    }
+    if (!profile) {
+      toast('Akun tidak ditemukan di database. Silakan hubungi admin atau daftar ulang.', { type: 'error' });
+      const { logout } = await import('./auth.js'); await logout();
+      btnLoading(btn, false); return;
+    }
+    if (profile.role !== 'student') {
       toast('Akun ini bukan akun siswa.', { type: 'error' });
       const { logout } = await import('./auth.js'); await logout();
       btnLoading(btn, false); return;
