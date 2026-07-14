@@ -365,11 +365,14 @@ function openBulkModal() {
       if (!ta) return;
       const item = ta.closest('.bulk-item');
       const preview = item.querySelector('.tbl-preview');
-      const rows = (item.querySelector('[data-checklist="rows"]')?.value || '').split('\n').map(s => s.trim()).filter(Boolean);
-      const colsText = (item.querySelector('[data-checklist="cols"]')?.value || '');
+      const checklistEl = item.querySelector('.bulk-table-checklist');
+      const isChecklist = ta.matches('[data-checklist]') || (checklistEl && checklistEl.style.display !== 'none');
+      const rows = isChecklist
+        ? (item.querySelector('[data-checklist="rows"]')?.value || '').split('\n').map(s => s.trim()).filter(Boolean)
+        : (item.querySelector('[data-fillin="rows"]')?.value || '').split('\n').map(s => s.trim()).filter(Boolean);
+      const colsText = isChecklist ? (item.querySelector('[data-checklist="cols"]')?.value || '') : '';
       if (!rows.length) { preview.innerHTML = 'Preview akan tampil di sini...'; return; }
       let h = '<div class="table-wrap"><table class="tbl" style="font-size:12px;margin:0">';
-      const isChecklist = ta.matches('[data-checklist]') || item.querySelector('.bulk-table-checklist')?.style.display !== 'none';
       if (isChecklist) {
         const colHeaders = colsText.split('\n').map(s => s.trim()).filter(Boolean);
         const headers = colHeaders.length ? colHeaders : ['✔'];
