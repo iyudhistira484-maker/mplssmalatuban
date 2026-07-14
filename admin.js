@@ -732,8 +732,32 @@ window.gradeModal = async (id) => {
           const icon = selected ? (isCorrectOpt ? '✓' : '✗') : (isCorrectOpt ? '✓' : '');
           return `<div style="${cls}">${icon ? `<strong>${icon}</strong> ` : ''}${opt}</div>`;
         }).join('')}</div>`;
+      } else if (q && (q.type === 'table_checklist' || q.type === 'tabel')) {
+        const cfg = q.tableConfig || { columns: [{ header: '✔' }], rows: [] };
+        const colDefs = cfg.columns || [{ header: '✔' }];
+        const rows = cfg.rows || [];
+        const studentAns = ans || {};
+        qHtml += '<div class="table-wrap" style="margin-top:6px"><table class="tbl" style="font-size:12px">';
+        qHtml += '<thead><tr><th style="width:30px">No</th><th>Item</th>' + colDefs.map(c => `<th style="text-align:center">${escapeHtml(c.header)}</th>`).join('') + '</tr></thead><tbody>';
+        qHtml += rows.map((label, ri) => {
+          return '<tr><td>' + (ri+1) + '</td><td>' + escapeHtml(label) + '</td>' +
+            colDefs.map((c, ci) => {
+              const checked = studentAns[ri]?.[ci] ? 'checked' : '';
+              return `<td style="text-align:center"><input type="checkbox" disabled ${checked} style="width:16px;height:16px"></td>`;
+            }).join('') + '</tr>';
+        }).join('') + '</tbody></table></div>';
+      } else if (q && q.type === 'table_fillin') {
+        const cfg = q.tableConfig || { rows: [] };
+        const rows = cfg.rows || [];
+        const studentAns = ans || {};
+        qHtml += '<div class="table-wrap" style="margin-top:6px"><table class="tbl" style="font-size:12px">';
+        qHtml += '<thead><tr><th style="width:30px">No</th><th>Field</th><th>Jawaban</th></tr></thead><tbody>';
+        qHtml += rows.map((label, ri) => {
+          const val = studentAns[ri]?.[0] || '';
+          return `<tr><td>${ri+1}</td><td>${escapeHtml(label)}</td><td>${escapeHtml(val) || '<em style="color:var(--muted)">—</em>'}</td></tr>`;
+        }).join('') + '</tbody></table></div>';
       } else {
-        qHtml += `<div style="padding:8px 12px;background:var(--white);border-radius:6px;font-size:.85rem;border:1px solid var(--line)">${ans || '<em style="color:var(--muted)">Tidak dijawab</em>'}</div>`;
+        qHtml += `<div style="padding:8px 12px;background:var(--white);border-radius:6px;font-size:.85rem;border:1px solid var(--line)">${ans != null ? escapeHtml(String(ans)) : '<em style="color:var(--muted)">Tidak dijawab</em>'}</div>`;
       }
       qHtml += `</div>`;
     });
