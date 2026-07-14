@@ -157,7 +157,16 @@ document.getElementById('btnGps').addEventListener('click', () => {
     statusEl.textContent = 'Gagal dapatkan lokasi. Coba lagi.';
   };
 
-  navigator.geolocation.getCurrentPosition(onSuccess, onError, { enableHighAccuracy: true, timeout: 30000, maximumAge: 60000 });
+  navigator.geolocation.getCurrentPosition(pos => {
+    const acc = pos.coords.accuracy;
+    if (acc > 200) {
+      navigator.geolocation.getCurrentPosition(onSuccess, onError, { enableHighAccuracy: false, timeout: 15000, maximumAge: 120000 });
+    } else {
+      onSuccess(pos);
+    }
+  }, () => {
+    navigator.geolocation.getCurrentPosition(onSuccess, onError, { enableHighAccuracy: false, timeout: 15000, maximumAge: 120000 });
+  }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 });
 });
 
 // ===== Face Verification (Izin/Sakit) =====
