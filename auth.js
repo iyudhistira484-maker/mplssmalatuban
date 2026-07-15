@@ -2,7 +2,7 @@
 import { auth, db } from './firebase-config.js';
 import {
   createUserWithEmailAndPassword, signInWithEmailAndPassword,
-  signOut, onAuthStateChanged, authStateReady
+  signOut, onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   doc, setDoc, getDoc, serverTimestamp
@@ -42,43 +42,56 @@ export async function getUserProfile(uid) {
 export function onAuth(cb) { return onAuthStateChanged(auth, cb); }
 
 // Route guard
-export async function guardRoute(requiredRole, redirect = 'login.html') {
-  try { await authStateReady(auth); } catch (_) {}
-  const user = auth.currentUser;
-  if (!user) { window.location.href = redirect; return null; }
-  const profile = await getUserProfile(user.uid);
-  if (!profile) {
-    await logout();
-    window.location.href = redirect; return null;
-  }
-  if (requiredRole && profile.role !== requiredRole) {
-    window.location.href = 'access-denied.html'
-    return null;
-  }
-  if (profile.role === 'student' && !window.__skipAttendanceCheck) {
-    try {
-      const today = new Date().toISOString().slice(0,10);
-      const attRef = doc(db, 'attendance', `${user.uid}_${today}`);
-      const att = await getDoc(attRef);
-      if (!att.exists()) {
-        if (!location.pathname.endsWith('attendance.html')) {
-          window.location.href = 'attendance.html'; return null;
+export function guardRoute(requiredRole, redirect = 'login.html') {
+  return new Promise((resolve) => {
+    let timer = null;
+    const unsub = onAuth(async (user) => {
+      if (user) {
+        if (timer) clearTimeout(timer);
+        const profile = await getUserProfile(user.uid);
+        if (!profile) {
+          await logout();
+          window.location.href = redirect; unsub(); return;
         }
+        if (requiredRole && profile.role !== requiredRole) {
+          window.location.href = 'access-denied.html'
+          unsub(); return;
+        }
+        if (profile.role === 'student' && !window.__skipAttendanceCheck) {
+          try {
+            const today = new Date().toISOString().slice(0,10);
+            const attRef = doc(db, 'attendance', `${user.uid}_${today}`);
+            const att = await getDoc(attRef);
+            if (!att.exists()) {
+              if (!location.pathname.endsWith('attendance.html')) {
+                window.location.href = 'attendance.html'; unsub(); return;
+              }
+            } else {
+              const st = att.data().status;
+              if (st === 'hadir') {
+                if (location.pathname.endsWith('attendance.html')) {
+                  window.location.href = 'student.html'; unsub(); return;
+                }
+              } else {
+                if (location.pathname.endsWith('student.html')) {
+                  window.location.href = 'access-denied.html'; unsub(); return;
+                }
+              }
+            }
+          } catch (_) {
+            console.warn('[guardRoute] attendance check failed, proceeding', _);
+          }
+        }
+        resolve(profile);
+        unsub();
       } else {
-        const st = att.data().status;
-        if (st === 'hadir') {
-          if (location.pathname.endsWith('attendance.html')) {
-            window.location.href = 'student.html'; return null;
-          }
-        } else {
-          if (location.pathname.endsWith('student.html')) {
-            window.location.href = 'access-denied.html'; return null;
-          }
+        if (!timer) {
+          timer = setTimeout(() => {
+            unsub();
+            window.location.href = redirect;
+          }, 500);
         }
       }
-    } catch (_) {
-      console.warn('[guardRoute] attendance check failed, proceeding', _);
-    }
-  }
-  return profile;
+    });
+  });
 }

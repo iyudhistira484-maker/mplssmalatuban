@@ -945,8 +945,8 @@ async function pageAbsensi() {
       <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
         <label style="font-weight:600;font-size:.85rem">Filter Tanggal:</label>
         <input type="date" id="absDownloadDate" style="padding:8px 12px;border:1px solid var(--line);border-radius:10px">
-        <button class="btn btn-primary" onclick="window.dlAbsenCsv('','')"><i class="fa-solid fa-download"></i> Download Semua (Filter Tanggal)</button>
-        <button class="btn btn-gold" onclick="window.dlAbsenAllSeparate()"><i class="fa-solid fa-file-zipper"></i> Download 7 Gugus Sekaligus (Filter Tanggal)</button>
+        <button class="btn btn-primary" onclick="window.dlAbsenCsvFiltered()"><i class="fa-solid fa-download"></i> Download Semua (Filter Tanggal)</button>
+        <button class="btn btn-gold" onclick="window.dlAbsenAllSeparateFiltered()"><i class="fa-solid fa-file-zipper"></i> Download 7 Gugus Sekaligus (Filter Tanggal)</button>
       </div>
       <div class="grid-3">
         ${SCHOOL_CONFIG.groups.map(g => `
@@ -1154,10 +1154,6 @@ window.delAbsen = async (id) => {
 };
 
 window.dlAbsenCsv = async (gugus, dateFilter) => {
-  if (dateFilter === undefined) {
-    const el = document.getElementById('absDownloadDate');
-    dateFilter = el ? el.value : '';
-  }
   try {
     const snap = await getDocs(collection(db,'attendance'));
     const rows = [['Tanggal','Nama','NIS','Kelas','Gugus','Status','Alasan','Latitude','Longitude','Jarak (m)','Akurasi (m)','Verifikasi Wajah']];
@@ -1185,8 +1181,23 @@ window.dlAbsenCsv = async (gugus, dateFilter) => {
 };
 
 window.dlAbsenAllSeparate = async () => {
+  for (const g of SCHOOL_CONFIG.groups) {
+    await window.dlAbsenCsv(g);
+    await new Promise(r => setTimeout(r, 350));
+  }
+};
+
+window.dlAbsenCsvFiltered = async () => {
   const el = document.getElementById('absDownloadDate');
   const dateFilter = el ? el.value : '';
+  if (!dateFilter) return toast('Pilih tanggal dulu', { type:'warning' });
+  await window.dlAbsenCsv('', dateFilter);
+};
+
+window.dlAbsenAllSeparateFiltered = async () => {
+  const el = document.getElementById('absDownloadDate');
+  const dateFilter = el ? el.value : '';
+  if (!dateFilter) return toast('Pilih tanggal dulu', { type:'warning' });
   for (const g of SCHOOL_CONFIG.groups) {
     await window.dlAbsenCsv(g, dateFilter);
     await new Promise(r => setTimeout(r, 350));
