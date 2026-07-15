@@ -668,7 +668,8 @@ async function pageJawaban() {
     <div class="panel">
       <div class="panel-head">
         <h3>Jawaban Siswa <span id="jawabanCount">(0)</span></h3>
-        <div class="actions">
+        <div class="actions" style="display:flex;gap:8px;flex-wrap:wrap">
+          <input type="date" id="jawabanDateFilter" style="padding:8px 12px;border:1px solid var(--line);border-radius:10px">
           <button class="btn btn-danger" id="btnResetNilai" title="Hapus semua nilai & jawaban siswa (reset progres)"><i class="fa-solid fa-trash-can"></i> Hapus Semua Nilai</button>
         </div>
       </div>
@@ -676,14 +677,25 @@ async function pageJawaban() {
     <div id="jawabanGroups"></div>`;
   document.getElementById('btnResetNilai').onclick = () => window.resetAllNilai();
   const items = [];
+  let filterDate = '';
+  document.getElementById('jawabanDateFilter').oninput = function() {
+    filterDate = this.value;
+    render();
+  };
   const groups = SCHOOL_CONFIG.groups;
+  const toDateStr = (ts) => {
+    if (!ts) return '';
+    const d = ts.toDate ? ts.toDate() : new Date(ts);
+    return d.toISOString().slice(0,10);
+  };
   const render = () => {
-    const total = items.length;
+    const filtered = filterDate ? items.filter(a => toDateStr(a.createdAt) === filterDate) : items;
+    const total = filtered.length;
     const countEl = document.getElementById('jawabanCount');
     if (countEl) countEl.textContent = `(${total})`;
     const container = document.getElementById('jawabanGroups');
     container.innerHTML = groups.map(g => {
-      const list = items.filter(a => a.gugus === g);
+      const list = filtered.filter(a => a.gugus === g);
       const setMap = {};
       list.forEach(a => {
         const s = a.quizSet || '(tanpa set)';
@@ -930,6 +942,12 @@ async function pageAbsensi() {
     <div class="panel" style="margin-top:18px">
       <div class="panel-head"><h3>Unduh CSV per Gugus</h3></div>
       <p style="color:var(--muted);margin-bottom:14px">Setiap gugus dapat diunduh terpisah. File CSV memuat semua status (hadir, izin, sakit).</p>
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
+        <label style="font-weight:600;font-size:.85rem">Filter Tanggal:</label>
+        <input type="date" id="absDownloadDate" style="padding:8px 12px;border:1px solid var(--line);border-radius:10px">
+        <button class="btn btn-primary" onclick="window.dlAbsenCsv('','')"><i class="fa-solid fa-download"></i> Download Semua (Filter Tanggal)</button>
+        <button class="btn btn-gold" onclick="window.dlAbsenAllSeparate()"><i class="fa-solid fa-file-zipper"></i> Download 7 Gugus Sekaligus (Filter Tanggal)</button>
+      </div>
       <div class="grid-3">
         ${SCHOOL_CONFIG.groups.map(g => `
           <div class="card">
@@ -1135,13 +1153,18 @@ window.delAbsen = async (id) => {
   } catch(e) { toast(e.message, { type:'error' }); }
 };
 
-window.dlAbsenCsv = async (gugus) => {
+window.dlAbsenCsv = async (gugus, dateFilter) => {
+  if (dateFilter === undefined) {
+    const el = document.getElementById('absDownloadDate');
+    dateFilter = el ? el.value : '';
+  }
   try {
     const snap = await getDocs(collection(db,'attendance'));
     const rows = [['Tanggal','Nama','NIS','Kelas','Gugus','Status','Alasan','Latitude','Longitude','Jarak (m)','Akurasi (m)','Verifikasi Wajah']];
     snap.forEach(d => {
       const a = d.data();
       if (gugus && a.gugus !== gugus) return;
+      if (dateFilter && a.date !== dateFilter) return;
       rows.push([
         a.date||'', a.name||'', a.nis||'', a.kelas||'', a.gugus||'',
         a.status||'hadir', a.reason||'',
@@ -1154,15 +1177,18 @@ window.dlAbsenCsv = async (gugus) => {
     const blob = new Blob(['\ufeff'+csv], { type:'text/csv;charset=utf-8;' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `absensi_${(gugus||'semua').replace(/\s+/g,'_')}_${new Date().toISOString().slice(0,10)}.csv`;
+    const dateStr = dateFilter || new Date().toISOString().slice(0,10);
+    a.download = `absensi_${(gugus||'semua').replace(/\s+/g,'_')}_${dateStr}${dateFilter ? '_filtered' : ''}.csv`;
     a.click();
-    toast(`CSV absensi ${gugus||'semua'} diunduh`, { type:'success' });
+    toast(`CSV absensi ${gugus||'semua'}${dateFilter ? ' (filter '+dateFilter+')' : ''} diunduh`, { type:'success' });
   } catch(e) { toast(e.message, { type:'error' }); }
 };
 
 window.dlAbsenAllSeparate = async () => {
+  const el = document.getElementById('absDownloadDate');
+  const dateFilter = el ? el.value : '';
   for (const g of SCHOOL_CONFIG.groups) {
-    await window.dlAbsenCsv(g);
+    await window.dlAbsenCsv(g, dateFilter);
     await new Promise(r => setTimeout(r, 350));
   }
 };
