@@ -598,12 +598,32 @@ async function pageNilai() {
 
 // ===== Notifikasi =====
 async function pageNotif() {
-  const snap = await getDocs(collection(db, 'notifications'));
-  const items = []; snap.forEach(d => items.push({ id: d.id, ...d.data() }));
-  if (!items.length) return content.innerHTML = emptyState('Tidak ada notifikasi', 'Pengumuman akan tampil di sini.');
-  content.innerHTML = items.map(n => `
-    <div class="panel"><div style="display:flex;gap:14px"><div class="hc-icon blue"><i class="fa-solid fa-bell"></i></div>
-      <div><strong>${n.title}</strong><p style="color:var(--muted);margin-top:4px">${n.body || ''}</p></div></div></div>`).join('');
+  content.innerHTML = '<div id="notifList"></div>';
+  pageUnsubscribe = onSnapshot(
+    query(collection(db, 'notifications'), orderBy('createdAt', 'desc')),
+    (snap) => {
+      const items = [];
+      snap.forEach(d => items.push({ id: d.id, ...d.data() }));
+      const el = document.getElementById('notifList');
+      if (!el) return;
+      if (!items.length) {
+        el.innerHTML = emptyState('Tidak ada notifikasi', 'Pengumuman akan tampil di sini.');
+        return;
+      }
+      el.innerHTML = items.map(n => {
+        const dateStr = n.createdAt?.toDate
+          ? n.createdAt.toDate().toLocaleDateString('id-ID', { weekday:'long', year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit' })
+          : '';
+        return `<div class="panel"><div style="display:flex;gap:14px">
+          <div class="hc-icon ${n.title ? 'gold' : 'blue'}"><i class="fa-solid fa-bullhorn"></i></div>
+          <div><strong>${escapeHtml(n.title)}</strong>
+            <p style="color:var(--muted);margin-top:4px">${escapeHtml(n.body || '')}</p>
+            <small style="color:var(--muted-2)">${dateStr}</small>
+          </div></div></div>`;
+      }).join('');
+    },
+    (err) => { console.error('[student] notifications error', err); }
+  );
 }
 
 // ===== Info MPLS =====

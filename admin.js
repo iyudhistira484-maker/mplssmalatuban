@@ -32,7 +32,7 @@ function setupNav() {
   }));
 }
 
-const titles = { overview:'Ringkasan', soal:'Kelola Soal', materi:'Kelola Materi', jadwal:'Jadwal Kegiatan', jawaban:'Jawaban Siswa', absensi:'Absensi & Analitik', audit:'Audit Log Pelanggaran', rating:'Rating OSIS', export:'Export Nilai (CSV)' };
+const titles = { overview:'Ringkasan', soal:'Kelola Soal', materi:'Kelola Materi', jadwal:'Jadwal Kegiatan', pengumuman:'Pengumuman', jawaban:'Jawaban Siswa', absensi:'Absensi & Analitik', audit:'Audit Log Pelanggaran', rating:'Rating OSIS', export:'Export Nilai (CSV)' };
 
 // Helper: render error panel + tombol retry agar tidak stuck "Memuat..."
 function renderError(err, retryFn) {
@@ -70,6 +70,7 @@ function loadPage(p) {
     soal:     safePage('soal',     pageSoal),
     materi:   safePage('materi',   pageMateri),
     jadwal:   safePage('jadwal',   pageSchedule),
+    pengumuman: safePage('pengumuman', pagePengumuman),
     jawaban:  safePage('jawaban',  pageJawaban),
     absensi:  safePage('absensi',  pageAbsensi),
     audit:    safePage('audit',    pageAudit),
@@ -655,6 +656,80 @@ window.delS = async (id) => {
   if(!confirm('Hapus jadwal ini?')) return;
   try { await deleteDoc(doc(db,'schedule',id)); toast('Dihapus',{type:'success'}); }
   catch(e) { toast(e.message,{type:'error'}); }
+};
+
+// ===== Pengumuman =====
+async function pagePengumuman() {
+  content.innerHTML = `
+    <div class="panel">
+      <div class="panel-head"><h3><i class="fa-solid fa-bullhorn" style="color:var(--gold)"></i> Buat Pengumuman</h3></div>
+      <div style="padding:0 24px 24px">
+        <div class="auth-field" style="margin-bottom:10px">
+          <label>Judul Pengumuman</label>
+          <input type="text" id="annTitle" placeholder="Judul pengumuman..." style="width:100%;padding:10px 14px;border:2px solid var(--line);border-radius:10px;font-size:.95rem">
+        </div>
+        <div class="auth-field" style="margin-bottom:10px">
+          <label>Isi Pengumuman</label>
+          <textarea id="annBody" placeholder="Tulis isi pengumuman di sini..." rows="4" style="width:100%;padding:10px 14px;border:2px solid var(--line);border-radius:10px;font-size:.95rem;resize:vertical"></textarea>
+        </div>
+        <button class="btn btn-primary" id="btnSendAnn"><i class="fa-solid fa-paper-plane"></i> Kirim Pengumuman</button>
+      </div>
+    </div>
+    <div class="panel" style="margin-top:14px">
+      <div class="panel-head"><h3><i class="fa-solid fa-list"></i> Daftar Pengumuman</h3></div>
+      <div id="annList"></div>
+    </div>`;
+  document.getElementById('btnSendAnn').onclick = async () => {
+    const title = document.getElementById('annTitle').value.trim();
+    const body = document.getElementById('annBody').value.trim();
+    if (!title) return toast('Judul harus diisi', { type: 'warning' });
+    const btn = document.getElementById('btnSendAnn');
+    btnLoading(btn, true, 'Mengirim...');
+    try {
+      await addDoc(collection(db, 'notifications'), {
+        title, body,
+        createdAt: serverTimestamp()
+      });
+      document.getElementById('annTitle').value = '';
+      document.getElementById('annBody').value = '';
+      toast('Pengumuman terkirim!', { type: 'success' });
+    } catch (e) { toast('Gagal: ' + e.message, { type: 'error' }); }
+    btnLoading(btn, false);
+  };
+  pageUnsubscribe = onSnapshot(
+    query(collection(db, 'notifications'), orderBy('createdAt', 'desc')),
+    (snap) => {
+      const items = [];
+      snap.forEach(d => items.push({ id: d.id, ...d.data() }));
+      const el = document.getElementById('annList');
+      if (!el) return;
+      if (!items.length) {
+        el.innerHTML = '<div class="empty" style="padding:24px"><i class="fa-solid fa-bullhorn"></i><p>Belum ada pengumuman</p></div>';
+        return;
+      }
+      el.innerHTML = items.map(n => {
+        const dateStr = n.createdAt?.toDate
+          ? n.createdAt.toDate().toLocaleDateString('id-ID', { weekday:'long', year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit' })
+          : '';
+        return `<div class="card" style="padding:14px;margin-bottom:10px;display:flex;gap:12px;align-items:flex-start">
+          <div style="flex-shrink:0;width:36px;height:36px;background:rgba(200,134,10,.12);border-radius:50%;display:grid;place-items:center;color:var(--gold)"><i class="fa-solid fa-bullhorn"></i></div>
+          <div style="flex:1">
+            <strong style="font-size:.95rem">${escapeHtml(n.title)}</strong>
+            <p style="color:var(--muted);font-size:.85rem;margin-top:4px">${escapeHtml(n.body || '')}</p>
+            <small style="color:var(--muted-2)">${dateStr}</small>
+          </div>
+          <button class="btn btn-danger" style="flex-shrink:0;padding:6px 10px" onclick="window.delAnn('${n.id}')" title="Hapus"><i class="fa-solid fa-trash"></i></button>
+        </div>`;
+      }).join('');
+    },
+    (err) => { console.error('[admin] notifications error', err); toast('Gagal memuat pengumuman', { type:'error' }); }
+  );
+}
+
+window.delAnn = async (id) => {
+  if (!confirm('Hapus pengumuman ini?')) return;
+  try { await deleteDoc(doc(db, 'notifications', id)); toast('Dihapus', { type:'success' }); }
+  catch (e) { toast(e.message, { type:'error' }); }
 };
 
 // ===== Jawaban + Penilaian =====
