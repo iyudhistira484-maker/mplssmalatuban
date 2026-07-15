@@ -1149,6 +1149,14 @@ async function pageAbsensi() {
   document.getElementById('fG').onchange = renderRows;
   document.getElementById('fS').onchange = renderRows;
   document.getElementById('fD').onchange = renderRows;
+  document.getElementById('fD').addEventListener('change', function() {
+    const dl = document.getElementById('absDownloadDate');
+    if (dl) dl.value = this.value;
+  });
+  document.getElementById('absDownloadDate').addEventListener('change', function() {
+    const fd = document.getElementById('fD');
+    if (fd) fd.value = this.value;
+  });
   const _btnRA = document.getElementById('btnResetAbsen');
   if (_btnRA) _btnRA.onclick = () => window.resetAllAbsen();
   renderRows();
